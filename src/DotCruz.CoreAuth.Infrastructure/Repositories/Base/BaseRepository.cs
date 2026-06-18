@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DotCruz.CoreAuth.Infrastructure.Repositories.Base;
 
-public abstract class BaseRepository<T> : IBaseReadRepository<T>, IBaseWriteRepository<T> where T : BaseEntity
+public class BaseRepository<T> : IBaseReadRepository<T>, IBaseWriteRepository<T> where T : BaseEntity
 {
     protected readonly CoreAuthDbContext _context;
     protected readonly DbSet<T> _dbSet;
