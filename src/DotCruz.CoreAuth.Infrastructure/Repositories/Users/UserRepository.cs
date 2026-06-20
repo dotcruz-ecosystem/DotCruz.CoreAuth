@@ -1,4 +1,5 @@
 using DotCruz.CoreAuth.Domain.Entities.Users;
+using DotCruz.CoreAuth.Domain.Enums.Users;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Users;
 using DotCruz.CoreAuth.Infrastructure.Data;
 using DotCruz.CoreAuth.Infrastructure.Repositories.Base;
@@ -31,5 +32,16 @@ public class UserRepository(CoreAuthDbContext context)
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);
+    }
+
+    public async Task<bool> IsUserActive(Guid userId, CancellationToken cancellationToken)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .AnyAsync(u => 
+                u.Id == userId &&
+                u.Status == UserStatus.Active, 
+                cancellationToken
+            );
     }
 }
