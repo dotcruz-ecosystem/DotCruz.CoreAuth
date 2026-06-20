@@ -10,14 +10,14 @@ namespace DotCruz.CoreAuth.Infrastructure.Data;
 
 public class CoreAuthDbContext(
     DbContextOptions<CoreAuthDbContext> options,
-    ITenantProvider tenantProvider) : DbContext(options)
+    ITenantResolver tenantResolver) : DbContext(options)
 {
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<ActivationToken> ActivationTokens { get; set; }
 
-    public Guid? TenantIdValue => tenantProvider.TenantId;
+    public Guid TenantIdValue => tenantResolver.TenantId;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,12 +43,9 @@ public class CoreAuthDbContext(
                 var providerTenantId = Expression.Property(Expression.Constant(this), nameof(TenantIdValue));
                 var tenantFilterExpr = Expression.Equal(propertyTenantId, providerTenantId);
 
-                var isGlobalExpr = Expression.Equal(providerTenantId, Expression.Constant(null, typeof(Guid?)));
-                var tenantOrGlobalExpr = Expression.OrElse(tenantFilterExpr, isGlobalExpr);
-
                 combinedExpr = combinedExpr != null 
-                    ? Expression.AndAlso(combinedExpr, tenantOrGlobalExpr) 
-                    : tenantOrGlobalExpr;
+                    ? Expression.AndAlso(combinedExpr, tenantFilterExpr) 
+                    : tenantFilterExpr;
             }
 
             if (combinedExpr != null)

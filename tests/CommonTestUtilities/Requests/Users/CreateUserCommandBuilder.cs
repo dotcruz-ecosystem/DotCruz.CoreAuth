@@ -13,15 +13,15 @@ public class CreateUserCommandBuilder
             .CustomInstantiator(f =>
             {
                 var type = f.PickRandom<UserType>();
-                Guid? resolvedTenantId = tenantId;
+                Guid resolvedTenantId;
 
-                if ((type == UserType.TenantAdmin || type == UserType.TenantUser) && !resolvedTenantId.HasValue)
+                if (type == UserType.SuperAdmin || type == UserType.InternalSupport)
                 {
-                    resolvedTenantId = Guid.NewGuid();
+                    resolvedTenantId = Guid.Empty;
                 }
-                else if (type == UserType.SuperAdmin || type == UserType.InternalSupport)
+                else
                 {
-                    resolvedTenantId = null;
+                    resolvedTenantId = tenantId ?? Guid.NewGuid();
                 }
 
                 return new CreateUserCommand(

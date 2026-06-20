@@ -23,13 +23,9 @@ namespace DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Generator
             var claims = new List<Claim>()
             {
                 new(ClaimTypes.Sid, user.Id.ToString()),
-                new(ClaimTypes.Role, user.Type.ToString())
+                new(ClaimTypes.Role, user.Type.ToString()),
+                new(CustomClaimTypes.TenantId, user.TenantId.ToString())
             };
-
-            if (user.TenantId.HasValue)
-            {
-                claims.Add(new(CustomClaimTypes.TenantId, user.TenantId.Value.ToString()));
-            }
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

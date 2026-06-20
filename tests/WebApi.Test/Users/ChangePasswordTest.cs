@@ -17,12 +17,14 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
     private readonly Guid _userId;
     private readonly string _email;
     private readonly string _password;
+    private readonly Guid _tenantId;
 
     public ChangePasswordTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _userId = factory.GetUserId();
         _email = factory.GetEmail();
         _password = factory.GetPassword();
+        _tenantId = factory.GetTenantId().GetValueOrDefault();
     }
 
     [Fact]
@@ -33,7 +35,7 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
             NewPassword: "NewStrongPassword123!"
         );
 
-        var response = await DoPut(method: $"{METHOD}/{_userId}/change-password", request: request);
+        var response = await DoPut(method: $"{METHOD}/{_userId}/change-password", request: request, tenantId: _tenantId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
@@ -51,7 +53,7 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
             NewPassword: "NewStrongPassword123!"
         );
 
-        var response = await DoPut(method: $"{METHOD}/{_userId}/change-password", request: request, culture: culture);
+        var response = await DoPut(method: $"{METHOD}/{_userId}/change-password", request: request, culture: culture, tenantId: _tenantId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
 
@@ -71,7 +73,7 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
             NewPassword: string.Empty
         );
 
-        var response = await DoPut(method: $"{METHOD}/{_userId}/change-password", request: request, culture: culture);
+        var response = await DoPut(method: $"{METHOD}/{_userId}/change-password", request: request, culture: culture, tenantId: _tenantId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -91,7 +93,7 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
             NewPassword: "short"
         );
 
-        var response = await DoPut(method: $"{METHOD}/{_userId}/change-password", request: request, culture: culture);
+        var response = await DoPut(method: $"{METHOD}/{_userId}/change-password", request: request, culture: culture, tenantId: _tenantId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 

@@ -13,20 +13,22 @@ public class DeactivateUserTest : DotCruzCoreAuthClassFixture
     private readonly string METHOD = "api/users";
 
     private readonly Guid _userId;
+    private readonly Guid _tenantId;
 
     public DeactivateUserTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _userId = factory.GetUserId();
+        _tenantId = factory.GetTenantId().GetValueOrDefault();
     }
 
     [Fact]
     public async Task Success()
     {
-        var response = await DoDelete(method: $"{METHOD}/{_userId}");
+        var response = await DoDelete(method: $"{METHOD}/{_userId}", tenantId: _tenantId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var getResponse = await DoGet(method: $"{METHOD}/{_userId}");
+        var getResponse = await DoGet(method: $"{METHOD}/{_userId}", tenantId: _tenantId.ToString());
         getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 

@@ -34,6 +34,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.CreatedAt).IsRequired();
         builder.Property(x => x.UpdatedAt).IsRequired();
         builder.Property(x => x.DeletedAt).IsRequired(false);
-        builder.Property(x => x.TenantId).IsRequired(false);
+        builder.Property(x => x.TenantId).IsRequired();
     }
 }

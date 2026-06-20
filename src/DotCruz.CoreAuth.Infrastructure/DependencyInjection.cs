@@ -15,7 +15,9 @@ using DotCruz.CoreAuth.Infrastructure.Security.Tokens;
 using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Generator;
 using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Validator;
 using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Refresh;
-using DotCruz.CoreAuth.Infrastructure.Services;
+using DotCruz.CoreAuth.Infrastructure.Services.LoggedUser;
+using DotCruz.CoreAuth.Infrastructure.Services.Notification;
+using DotCruz.CoreAuth.Infrastructure.Services.TenantResolver;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -79,7 +81,10 @@ public static class DependencyInjection
 
                 client.DefaultRequestHeaders.Add("X-Api-Key", notificationSettings!.ApiKey);
             });
-        }
+
+            services.AddScoped<ILoggedUser, LoggedUser>();
+            services.AddScoped<ITenantResolver, TenantResolver>();
+    }
 
         private static void AddDbContext(IServiceCollection services, IConfiguration configuration)
         {

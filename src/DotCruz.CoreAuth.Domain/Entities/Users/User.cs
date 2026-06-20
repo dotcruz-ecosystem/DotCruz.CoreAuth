@@ -19,7 +19,7 @@ public class User : TenantEntity
 
     private User() { }
 
-    public User(string name, string email, UserType type, Guid? tenantId)
+    public User(string name, string email, UserType type, Guid tenantId)
     {
         Name = name;
         Email = email.ToLowerInvariant();
@@ -38,8 +38,6 @@ public class User : TenantEntity
         Type = type ?? Type;
 
         if (Type == UserType.SuperAdmin || Type == UserType.InternalSupport)
-            SetTenantId(null);
-        else
             SetTenantId(tenantId ?? TenantId);
 
         Validate();
@@ -81,7 +79,7 @@ public class User : TenantEntity
         if (Status != UserStatus.PendingActivation && string.IsNullOrEmpty(PasswordHash))
             errors.Add(ResourceMessagesException.PASSWORD_EMPTY);
 
-        if ((Type == UserType.TenantAdmin || Type == UserType.TenantUser) && !TenantId.HasValue)
+        if ((Type == UserType.TenantAdmin || Type == UserType.TenantUser) && TenantId == Guid.Empty)
             errors.Add(ResourceMessagesException.TENANT_ID_REQUIRED);
 
         if (errors.Count > 0)

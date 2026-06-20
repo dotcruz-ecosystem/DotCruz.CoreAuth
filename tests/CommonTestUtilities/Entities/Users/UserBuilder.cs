@@ -13,28 +13,29 @@ public class UserBuilder
         int nameLength = 10,
         int emailLength = 10,
         Guid? tenantId = null,
-        UserStatus status = UserStatus.Active
+        UserStatus status = UserStatus.Active,
+        UserType? type = null
     )
     {
         var userFaker = new Faker<User>()
             .CustomInstantiator(f =>
             {
-                var type = f.PickRandom<UserType>();
-                Guid? resolvedTenantId = tenantId;
+                var resolvedType = type ?? f.PickRandom<UserType>();
+                Guid resolvedTenantId;
 
-                if ((type == UserType.TenantAdmin || type == UserType.TenantUser) && !resolvedTenantId.HasValue)
+                if (resolvedType == UserType.SuperAdmin || resolvedType == UserType.InternalSupport)
                 {
-                    resolvedTenantId = Guid.NewGuid();
+                    resolvedTenantId = Guid.Empty;
                 }
-                else if (type == UserType.SuperAdmin || type == UserType.InternalSupport)
+                else
                 {
-                    resolvedTenantId = null; // Garante nulidade para globais
+                    resolvedTenantId = tenantId ?? Guid.NewGuid();
                 }
 
                 return new User(
                     name ?? f.Person.FullName.PadRight(nameLength, 'a'),
                     email ?? f.Internet.Email(f.Person.FirstName).PadRight(emailLength, 'a'),
-                    type,
+                    resolvedType,
                     resolvedTenantId
                 );
             });

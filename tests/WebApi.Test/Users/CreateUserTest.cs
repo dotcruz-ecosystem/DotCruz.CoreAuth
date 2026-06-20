@@ -35,7 +35,7 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
 
         createdId.Should().NotBeEmpty();
 
-        var getResponse = await DoGet(method: $"api/users/{createdId}");
+        var getResponse = await DoGet(method: $"api/users/{createdId}", tenantId: command.TenantId.ToString());
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var getResponseBody = await getResponse.Content.ReadAsStringAsync();

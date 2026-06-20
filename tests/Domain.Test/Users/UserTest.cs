@@ -147,7 +147,7 @@ public class UserTest
     [Fact]
     public void Error_TenantId_Empty_For_TenantUser()
     {
-        Action act = () => new User("Nome", "email@teste.com", UserType.TenantUser, null);
+        Action act = () => new User("Nome", "email@teste.com", UserType.TenantUser, Guid.Empty);
 
         act.Should().Throw<ErrorOnValidationException>()
             .And.GetErrorsMessages().Should().Contain(ResourceMessagesException.TENANT_ID_REQUIRED)
@@ -170,8 +170,8 @@ public class UserTest
         var tenantId = Guid.NewGuid();
         var user = new User("Nome", "email@teste.com", UserType.TenantUser, tenantId);
 
-        user.Update(null, null, null, UserType.SuperAdmin);
+        user.Update(null, null, null, UserType.SuperAdmin, Guid.Empty);
 
-        user.TenantId.Should().BeNull();
+        user.TenantId.Should().Be(Guid.Empty);
     }
 }

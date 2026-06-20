@@ -8,4 +8,4 @@ public record CreateUserCommand(
     string Name,
     string Email,
     UserType Type,
-    Guid? TenantId = null) : IRequest<Guid>;
+    Guid TenantId) : IRequest<Guid>;

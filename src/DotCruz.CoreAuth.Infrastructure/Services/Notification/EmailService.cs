@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using System.Globalization;
 using System.Net.Http.Json;
 
-namespace DotCruz.CoreAuth.Infrastructure.Services;
+namespace DotCruz.CoreAuth.Infrastructure.Services.Notification;
 
 public class EmailService(
     HttpClient httpClient,

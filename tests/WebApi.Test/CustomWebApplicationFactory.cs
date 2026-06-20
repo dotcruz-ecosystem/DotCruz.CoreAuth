@@ -85,7 +85,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                         tenantId = parsedGuid;
                     
                     var mock = new Mock<ITenantProvider>();
-                    mock.Setup(t => t.TenantId).Returns(tenantId);
+                    mock.Setup(t => t.TenantId()).Returns(tenantId);
                     return mock.Object;
                 });
 
@@ -136,11 +136,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 name: faker.Person.FullName,
                 email: faker.Internet.Email(),
                 passwordHashed: activeUserHash,
-                tenantId: null,
-                status: UserStatus.Active
+                tenantId: tenantId,
+                status: UserStatus.Active,
+                type: UserType.TenantUser
             );
-        
-            _user.Update(name: null, email: null, passwordHash: null, type: UserType.TenantUser, tenantId: tenantId);
         
             dbContext.Users.Add(_user);
 
@@ -164,11 +163,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 name: faker.Person.FullName,
                 email: faker.Internet.Email(),
                 passwordHashed: null,
-                tenantId: null,
-                status: UserStatus.PendingActivation
+                tenantId: tenantId,
+                status: UserStatus.PendingActivation,
+                type: UserType.TenantUser
             );
-
-            _pendingUser.Update(name: null, email: null, passwordHash: null, type: UserType.TenantUser, tenantId: tenantId);
 
             dbContext.Users.Add(_pendingUser);
 
