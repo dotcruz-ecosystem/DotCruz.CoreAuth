@@ -15,10 +15,12 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
     private readonly string METHOD = "api/users";
 
     private readonly string _email;
+    private readonly string _tenantId;
 
     public CreateUserTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _email = factory.GetEmail();
+        _tenantId = factory.GetTenantId().ToString()!;
     }
 
     [Fact]
@@ -82,7 +84,7 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
     [ClassData(typeof(CultureInlineDataTest))]
     public async Task Error_Email_Invalid(string culture)
     {
-        var command = CreateUserCommandBuilder.Build() with { Email = "invalid-email-format" };
+        var command = CreateUserCommandBuilder.Build() with { Email = "invalid-email" };
 
         var response = await DoPost(method: METHOD, request: command, culture: culture);
 
@@ -101,7 +103,7 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
     {
         var command = CreateUserCommandBuilder.Build() with { Email = _email };
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 

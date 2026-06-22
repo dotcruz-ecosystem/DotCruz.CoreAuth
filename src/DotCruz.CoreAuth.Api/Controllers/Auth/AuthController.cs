@@ -17,9 +17,9 @@ public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(
     [Route("login")]
     [ProducesResponseType(typeof(ResponseLoginDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Login([FromBody] LoginCommand command)
+    public async Task<IActionResult> Login([FromBody] LoginCommand command, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(command);
+        var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
     }
 
@@ -27,9 +27,9 @@ public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(
     [Route("activate")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Activate([FromBody] ActivateAccountCommand command)
+    public async Task<IActionResult> Activate([FromBody] ActivateAccountCommand command, CancellationToken cancellationToken)
     {
-        await _mediator.Send(command);
+        await _mediator.Send(command, cancellationToken);
         return NoContent();
     }
 
@@ -37,9 +37,9 @@ public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(
     [Route("refresh-token")]
     [ProducesResponseType(typeof(ResponseTokensDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command)
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command, CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(command);
+        var result = await _mediator.Send(command, cancellationToken);
         return Ok(result);
     }
 
@@ -47,9 +47,9 @@ public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(
     [Route("password-reset/request")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RequestPasswordReset([FromBody] RequestPasswordResetCommand command)
+    public async Task<IActionResult> RequestPasswordReset([FromBody] RequestPasswordResetCommand command, CancellationToken cancellationToken)
     {
-        await _mediator.Send(command);
+        await _mediator.Send(command, cancellationToken);
         return NoContent();
     }
 
@@ -57,20 +57,19 @@ public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(
     [Route("password-reset/reset")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command, CancellationToken cancellationToken)
     {
-        await _mediator.Send(command);
+        await _mediator.Send(command, cancellationToken);
         return NoContent();
     }
 
     [HttpPost]
-    [Route("revoke-tokens/{UserId}")]
+    [Route("revoke-tokens")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RevokeTokens([FromRoute] Guid UserId)
+    public async Task<IActionResult> RevokeTokens(CancellationToken cancellationToken)
     {
-        var command = new RevokeAllUserTokensCommand(UserId);
-        await _mediator.Send(command);
+        await _mediator.Send(new RevokeAllUserTokensCommand(), cancellationToken);
         return NoContent();
     }
 }

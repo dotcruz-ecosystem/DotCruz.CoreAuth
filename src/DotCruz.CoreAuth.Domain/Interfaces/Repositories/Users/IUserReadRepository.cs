@@ -5,8 +5,8 @@ namespace DotCruz.CoreAuth.Domain.Interfaces.Repositories.Users;
 
 public interface IUserReadRepository : IBaseReadRepository<User>
 {
-    Task<bool> ExistsActiveUserWithEmailAsync(string email, CancellationToken cancellationToken = default);
-    Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default);
-    Task<(IEnumerable<User> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<bool> ExistsActiveUserWithEmailAsync(string email, CancellationToken cancellationToken);
+    Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken);
+    Task<(IEnumerable<User> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken);
     Task<bool> IsUserActive(Guid userId, CancellationToken cancellationToken);
 }

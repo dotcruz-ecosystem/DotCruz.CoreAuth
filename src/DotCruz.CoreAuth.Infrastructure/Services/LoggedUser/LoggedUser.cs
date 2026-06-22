@@ -1,4 +1,6 @@
-﻿using DotCruz.CoreAuth.Domain.Entities.Users;
+using DotCruz.CoreAuth.Domain.Entities.Users;
+using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
+using DotCruz.CoreAuth.Domain.Exceptions.Resources;
 using DotCruz.CoreAuth.Domain.Interfaces.Security;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
 using DotCruz.CoreAuth.Infrastructure.Data;
@@ -22,7 +24,7 @@ public class LoggedUser : ILoggedUser
         _tokenProvider = tokenProvider;
     }
 
-    public async Task<User> User()
+    public async Task<User> User(CancellationToken cancellationToken)
     {
         var token = _tokenProvider.Value();
 
@@ -33,10 +35,15 @@ public class LoggedUser : ILoggedUser
         var userIdClaim = jwtSecurityToken.Claims.First(c => c.Type == ClaimTypes.Sid).Value;
 
         var userId = Guid.Parse(userIdClaim);
-
-        return await _context
+        
+        var user = await _context
             .Users
             .AsNoTracking()
-            .FirstAsync(user => user.Id == userId && user.DeletedAt == null);
+            .FirstOrDefaultAsync(user => user.Id == userId && user.DeletedAt == null, cancellationToken);
+
+        if (user == null)
+            throw new NotFoundException(ResourceMessagesException.USER_NOT_FOUND);
+
+        return user;
     }
 }

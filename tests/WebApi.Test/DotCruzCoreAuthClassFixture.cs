@@ -49,6 +49,20 @@ public class DotCruzCoreAuthClassFixture : IClassFixture<CustomWebApplicationFac
         return await _httpClient.PutAsJsonAsync(method, request);
     }
 
+    protected async Task<HttpResponseMessage> DoPatch(
+        string method,
+        object request,
+        string token = "",
+        string culture = "en",
+        string tenantId = "")
+    {
+        ChangeRequestCulture(culture);
+        AuthorizeRequest(token);
+        AddTenantHeader(tenantId);
+
+        return await _httpClient.PatchAsJsonAsync(method, request);
+    }
+
     protected async Task<HttpResponseMessage> DoDelete(
         string method,
         string token = "",

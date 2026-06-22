@@ -4,5 +4,5 @@ namespace DotCruz.CoreAuth.Domain.Interfaces.Security;
 
 public interface ILoggedUser
 {
-    public Task<User> User();
+    public Task<User> User(CancellationToken cancellationToken);
 }

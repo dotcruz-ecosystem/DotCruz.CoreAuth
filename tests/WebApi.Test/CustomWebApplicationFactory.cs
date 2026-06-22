@@ -9,6 +9,7 @@ using DotCruz.CoreAuth.Domain.Interfaces.Security;
 using DotCruz.CoreAuth.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace WebApi.Test;
@@ -109,6 +110,18 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public Guid GetUserId() => _user.Id;
     public Guid? GetTenantId() => _user.TenantId;
     public string GetRefreshToken() => _refreshToken.Token;
+
+    public string GenerateAccessToken(User user)
+    {
+        using var scope = Services.CreateScope();
+        var generator = scope.ServiceProvider.GetRequiredService<DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens.IAccessTokenGenerator>();
+        return generator.Generate(user);
+    }
+
+    public string GetAccessToken()
+    {
+        return GenerateAccessToken(_user);
+    }
 
     public string GetPendingUserEmail() => _pendingUser.Email;
     public string GetActivationToken() => _activationTokenValue;

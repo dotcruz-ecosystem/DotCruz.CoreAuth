@@ -23,6 +23,11 @@ public class ChangePasswordCommandHandlerTest
             .SetupGetByIdToUpdate(user)
             .Build();
 
+        var loggedUserMock = new Mock<ILoggedUser>();
+        loggedUserMock
+            .Setup(x => x.User(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
         var passwordHasherMock = new Mock<IPasswordHasher>();
         passwordHasherMock
             .Setup(x => x.VerifyPassword("current-pass", "old-hash"))
@@ -35,11 +40,12 @@ public class ChangePasswordCommandHandlerTest
 
         var handler = new ChangePasswordCommandHandler(
             userWriteRepository,
+            loggedUserMock.Object,
             passwordHasherMock.Object,
             unitOfWorkMock.Object
         );
 
-        var command = new ChangePasswordCommand(user.Id, "current-pass", "new-pass");
+        var command = new ChangePasswordCommand("current-pass", "new-pass");
 
         await handler.Handle(command, CancellationToken.None);
 
@@ -50,21 +56,27 @@ public class ChangePasswordCommandHandlerTest
     [Fact]
     public async Task Error_User_NotFound()
     {
-        var userId = Guid.NewGuid();
+        var user = UserBuilder.Build();
         var userWriteRepository = new UserWriteRepositoryBuilder()
-            .SetupGetByIdToUpdate(userId, null)
+            .SetupGetByIdToUpdate(user.Id, null)
             .Build();
+
+        var loggedUserMock = new Mock<ILoggedUser>();
+        loggedUserMock
+            .Setup(x => x.User(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
 
         var passwordHasherMock = new Mock<IPasswordHasher>();
         var unitOfWorkMock = new Mock<DotCruz.CoreAuth.Domain.Interfaces.Data.IUnitOfWork>();
 
         var handler = new ChangePasswordCommandHandler(
             userWriteRepository,
+            loggedUserMock.Object,
             passwordHasherMock.Object,
             unitOfWorkMock.Object
         );
 
-        var command = new ChangePasswordCommand(userId, "current-pass", "new-pass");
+        var command = new ChangePasswordCommand("current-pass", "new-pass");
 
         Func<Task> act = () => handler.Handle(command, CancellationToken.None);
 
@@ -80,6 +92,11 @@ public class ChangePasswordCommandHandlerTest
             .SetupGetByIdToUpdate(user)
             .Build();
 
+        var loggedUserMock = new Mock<ILoggedUser>();
+        loggedUserMock
+            .Setup(x => x.User(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
         var passwordHasherMock = new Mock<IPasswordHasher>();
         passwordHasherMock
             .Setup(x => x.VerifyPassword("wrong-pass", "old-hash"))
@@ -89,11 +106,12 @@ public class ChangePasswordCommandHandlerTest
 
         var handler = new ChangePasswordCommandHandler(
             userWriteRepository,
+            loggedUserMock.Object,
             passwordHasherMock.Object,
             unitOfWorkMock.Object
         );
 
-        var command = new ChangePasswordCommand(user.Id, "wrong-pass", "new-pass");
+        var command = new ChangePasswordCommand("wrong-pass", "new-pass");
 
         Func<Task> act = () => handler.Handle(command, CancellationToken.None);
 

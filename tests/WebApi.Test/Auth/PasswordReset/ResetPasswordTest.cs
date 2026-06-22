@@ -15,11 +15,13 @@ public class ResetPasswordTest : DotCruzCoreAuthClassFixture
 
     private readonly string _email;
     private readonly string _resetToken;
+    private readonly string _tenantId;
 
     public ResetPasswordTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _email = factory.GetEmail();
         _resetToken = factory.GetPasswordResetToken();
+        _tenantId = factory.GetTenantId().ToString()!;
     }
 
     [Fact]
@@ -27,12 +29,12 @@ public class ResetPasswordTest : DotCruzCoreAuthClassFixture
     {
         var command = ResetPasswordCommandBuilder.Build() with { Token = _resetToken, NewPassword = "NewStrongPassword123!" };
 
-        var response = await DoPost(method: METHOD, request: command);
+        var response = await DoPost(method: METHOD, request: command, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var loginCommand = LoginCommandBuilder.Build() with { Email = _email, Password = "NewStrongPassword123!" };
-        var loginResponse = await DoPost(method: "api/auth/login", request: loginCommand);
+        var loginResponse = await DoPost(method: "api/auth/login", request: loginCommand, tenantId: _tenantId);
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -42,7 +44,7 @@ public class ResetPasswordTest : DotCruzCoreAuthClassFixture
     {
         var command = ResetPasswordCommandBuilder.Build() with { Token = string.Empty, NewPassword = "NewStrongPassword123!" };
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -59,7 +61,7 @@ public class ResetPasswordTest : DotCruzCoreAuthClassFixture
     {
         var command = ResetPasswordCommandBuilder.Build() with { Token = _resetToken, NewPassword = string.Empty };
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -76,7 +78,7 @@ public class ResetPasswordTest : DotCruzCoreAuthClassFixture
     {
         var command = ResetPasswordCommandBuilder.Build(passwordLength: 5) with { Token = _resetToken };
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -94,7 +96,7 @@ public class ResetPasswordTest : DotCruzCoreAuthClassFixture
     {
         var command = ResetPasswordCommandBuilder.Build() with { Token = "invalid-token", NewPassword = "NewStrongPassword123!" };
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 

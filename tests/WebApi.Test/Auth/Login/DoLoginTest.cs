@@ -16,12 +16,14 @@ public class DoLoginTest : DotCruzCoreAuthClassFixture
     private readonly string _email;
     private readonly string _password;
     private readonly string _name;
+    private readonly string _tenantId;
 
     public DoLoginTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _email = factory.GetEmail();
         _password = factory.GetPassword();
         _name = factory.GetName();
+        _tenantId = factory.GetTenantId().ToString()!;
     }
 
     [Fact]
@@ -29,7 +31,7 @@ public class DoLoginTest : DotCruzCoreAuthClassFixture
     {
         var command = new LoginCommand(_email, _password);
 
-        var response = await DoPost(method: METHOD, request: command);
+        var response = await DoPost(method: METHOD, request: command, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -48,7 +50,7 @@ public class DoLoginTest : DotCruzCoreAuthClassFixture
     {
         var command = new LoginCommand(_email, "wrongpassword");
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
 
@@ -68,7 +70,7 @@ public class DoLoginTest : DotCruzCoreAuthClassFixture
     {
         var command = new LoginCommand("emailnotexists@email.com", _password);
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
 
@@ -88,7 +90,7 @@ public class DoLoginTest : DotCruzCoreAuthClassFixture
     {
         var command = new LoginCommand(string.Empty, _password);
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -108,7 +110,7 @@ public class DoLoginTest : DotCruzCoreAuthClassFixture
     {
         var command = new LoginCommand(_email.Replace('@', 'a'), _password);
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -128,7 +130,7 @@ public class DoLoginTest : DotCruzCoreAuthClassFixture
     {
         var command = new LoginCommand(_email, string.Empty);
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 

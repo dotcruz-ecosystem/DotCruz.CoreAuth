@@ -10,23 +10,28 @@ namespace DotCruz.CoreAuth.Application.Commands.Users.ChangePassword;
 public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand>
 {
     private readonly IUserWriteRepository _userWriteRepository;
+    private readonly ILoggedUser _loggedUser;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IUnitOfWork _unitOfWork;
 
     public ChangePasswordCommandHandler(
         IUserWriteRepository userWriteRepository,
+        ILoggedUser loggedUser,
         IPasswordHasher passwordHasher,
         IUnitOfWork unitOfWork
     )
     {
         _userWriteRepository = userWriteRepository;
+        _loggedUser = loggedUser;
         _passwordHasher = passwordHasher;
         _unitOfWork = unitOfWork;
     }
 
     public async Task Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userWriteRepository.GetByIdToUpdate(request.UserId, cancellationToken)
+        var loggedUser = await _loggedUser.User(cancellationToken);
+
+        var user = await _userWriteRepository.GetByIdToUpdate(loggedUser.Id, cancellationToken)
             ?? throw new NotFoundException(ResourceMessagesException.USER_NOT_FOUND);
 
         var isPasswordValid = _passwordHasher.VerifyPassword(request.CurrentPassword, user.PasswordHash ?? string.Empty);

@@ -15,11 +15,13 @@ public class ActivateAccountTest : DotCruzCoreAuthClassFixture
 
     private readonly string _pendingEmail;
     private readonly string _activationToken;
+    private readonly string _tenantId;
 
     public ActivateAccountTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _pendingEmail = factory.GetPendingUserEmail();
         _activationToken = factory.GetActivationToken();
+        _tenantId = factory.GetTenantId().ToString()!;
     }
 
     [Fact]
@@ -27,13 +29,13 @@ public class ActivateAccountTest : DotCruzCoreAuthClassFixture
     {
         var command = new ActivateAccountCommand(_activationToken, "NewStrongPassword123!");
 
-        var response = await DoPost(method: METHOD, request: command);
+        var response = await DoPost(method: METHOD, request: command, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         // Verify that the user is now active by attempting to login with new password
         var loginCommand = new DotCruz.CoreAuth.Application.Commands.Auth.Login.LoginCommand(_pendingEmail, "NewStrongPassword123!");
-        var loginResponse = await DoPost(method: "api/auth/login", request: loginCommand);
+        var loginResponse = await DoPost(method: "api/auth/login", request: loginCommand, tenantId: _tenantId);
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -43,7 +45,7 @@ public class ActivateAccountTest : DotCruzCoreAuthClassFixture
     {
         var command = new ActivateAccountCommand(string.Empty, "NewStrongPassword123!");
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -60,7 +62,7 @@ public class ActivateAccountTest : DotCruzCoreAuthClassFixture
     {
         var command = new ActivateAccountCommand(_activationToken, "short");
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -78,7 +80,7 @@ public class ActivateAccountTest : DotCruzCoreAuthClassFixture
     {
         var command = new ActivateAccountCommand("invalid-token", "NewStrongPassword123!");
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 

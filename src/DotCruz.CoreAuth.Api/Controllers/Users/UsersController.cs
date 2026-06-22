@@ -18,9 +18,9 @@ public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController
     [HttpPost]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create([FromBody] CreateUserCommand command)
+    public async Task<IActionResult> Create([FromBody] CreateUserCommand command, CancellationToken cancellationToken)
     {
-        var id = await _mediator.Send(command);
+        var id = await _mediator.Send(command, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id }, id);
     }
 
@@ -28,19 +28,19 @@ public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController
     [Route("{Id}")]
     [ProducesResponseType(typeof(ResponseUserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById([FromRoute] Guid Id)
+    public async Task<IActionResult> GetById([FromRoute] Guid Id, CancellationToken cancellationToken)
     {
         var query = new GetUserByIdQuery(Id);
-        var result = await _mediator.Send(query);
+        var result = await _mediator.Send(query, cancellationToken);
         return Ok(result);
     }
 
     [HttpGet]
     [ProducesResponseType(typeof(PagedResultDto<ResponseUserDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
         var query = new GetUsersQuery(pageNumber, pageSize);
-        var result = await _mediator.Send(query);
+        var result = await _mediator.Send(query, cancellationToken);
         return Ok(result);
     }
 
@@ -49,32 +49,32 @@ public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update([FromRoute] Guid Id, [FromBody] UpdateUserRequest request)
+    public async Task<IActionResult> Update([FromRoute] Guid Id, [FromBody] UpdateUserRequest request, CancellationToken cancellationToken)
     {
         var command = new UpdateUserCommand(Id, request);
-        await _mediator.Send(command);
+        await _mediator.Send(command, cancellationToken);
         return NoContent();
     }
 
-    [HttpPut]
-    [Route("{Id}/change-password")]
+    [HttpPatch]
+    [Route("change-password")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ChangePassword([FromRoute] Guid Id, [FromBody] ChangePasswordRequest request)
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
     {
-        var command = new ChangePasswordCommand(Id, request.CurrentPassword, request.NewPassword);
-        await _mediator.Send(command);
+        var command = new ChangePasswordCommand(request.CurrentPassword, request.NewPassword);
+        await _mediator.Send(command, cancellationToken);
         return NoContent();
     }
 
     [HttpDelete("{Id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Deactivate([FromRoute] Guid Id)
+    public async Task<IActionResult> Deactivate([FromRoute] Guid Id, CancellationToken cancellationToken)
     {
         var command = new DeactivateUserCommand(Id);
-        await _mediator.Send(command);
+        await _mediator.Send(command, cancellationToken);
         return NoContent();
     }
 }
