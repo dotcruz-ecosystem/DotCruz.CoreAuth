@@ -1,4 +1,4 @@
-﻿using CommonTestUtilities.Entities.Tokens;
+using CommonTestUtilities.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
 using DotCruz.CoreAuth.Domain.Exceptions.Resources;
 
@@ -44,7 +44,7 @@ namespace Domain.Test.Tokens
         [Fact]
         public void Error_Expiration_Date_Earlier_Current_Date()
         {
-            static void Action() => RefreshTokenBuilder.Build(expiresAt: DateTime.UtcNow.AddMinutes(-5));
+            static void Action() => RefreshTokenBuilder.Build(expiresAt: DateTimeOffset.UtcNow.AddMinutes(-5));
 
             var exception = Assert.Throws<ErrorOnValidationException>(Action);
 

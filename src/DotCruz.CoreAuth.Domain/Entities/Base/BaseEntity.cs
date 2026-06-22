@@ -3,11 +3,11 @@ namespace DotCruz.CoreAuth.Domain.Entities.Base
     public abstract class BaseEntity
     {
         public Guid Id { get; protected set; } = Guid.NewGuid();
-        public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; protected set; } = DateTime.UtcNow;
-        public DateTime? DeletedAt { get; protected set; }
+        public DateTimeOffset CreatedAt { get; protected set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset UpdatedAt { get; protected set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset? DeletedAt { get; protected set; }
 
-        public void Touch() => UpdatedAt = DateTime.UtcNow;
-        public void Delete() => DeletedAt = DateTime.UtcNow;
+        public void Touch() => UpdatedAt = DateTimeOffset.UtcNow;
+        public void Delete() => DeletedAt = DateTimeOffset.UtcNow;
     }
 }

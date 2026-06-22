@@ -25,8 +25,8 @@ public class DeactivateUserCommandHandlerTest
             .SetupGetByIdToUpdate(user)
             .Build();
 
-        var token1 = new RefreshToken("token-1", DateTime.UtcNow.AddDays(1), user.Id);
-        var token2 = new RefreshToken("token-2", DateTime.UtcNow.AddDays(1), user.Id);
+        var token1 = new RefreshToken("token-1", DateTimeOffset.UtcNow.AddDays(1), user.Id);
+        var token2 = new RefreshToken("token-2", DateTimeOffset.UtcNow.AddDays(1), user.Id);
         var activeTokens = new List<RefreshToken> { token1, token2 };
 
         var refreshTokenReadRepositoryMock = new Mock<IRefreshTokenReadRepository>();

@@ -1,4 +1,4 @@
-﻿using CommonTestUtilities.Entities.Tokens;
+using CommonTestUtilities.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
 using DotCruz.CoreAuth.Domain.Exceptions.Resources;
@@ -13,7 +13,7 @@ namespace Domain.Test.Tokens
             var passwordResetToken = PasswordResetTokenBuilder.Build();
 
             Assert.NotEmpty(passwordResetToken.Token);
-            Assert.True(passwordResetToken.ExpiresAt > DateTime.UtcNow);
+            Assert.True(passwordResetToken.ExpiresAt > DateTimeOffset.UtcNow);
             Assert.False(passwordResetToken.IsUsed);
         }
 
@@ -43,7 +43,7 @@ namespace Domain.Test.Tokens
         [Fact]
         public void Error_Expiration_Date_Earlier_Current_Date()
         {
-            static void Action() => PasswordResetTokenBuilder.Build(expiresAt: DateTime.UtcNow.AddMinutes(-1));
+            static void Action() => PasswordResetTokenBuilder.Build(expiresAt: DateTimeOffset.UtcNow.AddMinutes(-1));
 
             var exception = Assert.Throws<ErrorOnValidationException>(Action);
 
@@ -57,7 +57,7 @@ namespace Domain.Test.Tokens
             var token = PasswordResetTokenBuilder.Build();
 
             var expiresAtProperty = typeof(PasswordResetToken).GetProperty("ExpiresAt");
-            expiresAtProperty?.SetValue(token, DateTime.UtcNow.AddMinutes(-5));
+            expiresAtProperty?.SetValue(token, DateTimeOffset.UtcNow.AddMinutes(-5));
 
             void Action() => token.MarkAsUsed();
 

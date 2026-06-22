@@ -158,7 +158,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
             _refreshToken = RefreshTokenBuilder.Build(
                 token: Guid.NewGuid().ToString(),
-                expiresAt: DateTime.UtcNow.AddDays(7),
+                expiresAt: DateTimeOffset.UtcNow.AddDays(7),
                 userId: _user.Id
             );
             dbContext.RefreshTokens.Add(_refreshToken);
@@ -167,7 +167,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             var hashedResetToken = tokenProvider.Hash(_passwordResetTokenValue);
             _passwordResetToken = PasswordResetTokenBuilder.Build(
                 token: hashedResetToken,
-                expiresAt: DateTime.UtcNow.AddHours(1),
+                expiresAt: DateTimeOffset.UtcNow.AddHours(1),
                 userId: _user.Id
             );
             dbContext.PasswordResetTokens.Add(_passwordResetToken);
@@ -187,7 +187,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             var hashedActivationToken = tokenProvider.Hash(_activationTokenValue);
             _activationToken = ActivationTokenBuilder.Build(
                 token: hashedActivationToken,
-                expiresAt: DateTime.UtcNow.AddDays(1),
+                expiresAt: DateTimeOffset.UtcNow.AddDays(1),
                 userId: _pendingUser.Id
             );
             dbContext.ActivationTokens.Add(_activationToken);

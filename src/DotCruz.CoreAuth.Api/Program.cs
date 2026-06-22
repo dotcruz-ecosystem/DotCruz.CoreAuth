@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCommonConfiguration(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthTokenProvider, HttpContextTokenValue>();
 builder.Services.AddScoped<ITenantProvider, HttpContextTenantValue>();
 

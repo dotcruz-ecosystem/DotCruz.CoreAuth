@@ -8,17 +8,17 @@ namespace DotCruz.CoreAuth.Domain.Entities.Tokens
     public class PasswordResetToken : BaseEntity
     {
         public string Token { get; private set; }
-        public DateTime ExpiresAt { get; private set; }
+        public DateTimeOffset ExpiresAt { get; private set; }
         public bool IsUsed { get; private set; }
         public Guid UserId { get; private set; }
 
-        public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
+        public bool IsExpired => DateTimeOffset.UtcNow >= ExpiresAt;
 
         public User? User { get; private set; }
 
         private PasswordResetToken() { }
 
-        public PasswordResetToken(string token, DateTime expiresAt, Guid userId)
+        public PasswordResetToken(string token, DateTimeOffset expiresAt, Guid userId)
         {
             Token = token;
             ExpiresAt = expiresAt;
