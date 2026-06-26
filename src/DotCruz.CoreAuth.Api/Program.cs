@@ -1,3 +1,4 @@
+using DotCruz.CoreAuth.Api.Configurations;
 using DotCruz.CoreAuth.Api.Filters;
 using DotCruz.CoreAuth.Api.HttpContexts;
 using DotCruz.CoreAuth.Api.Middlewares;
@@ -16,20 +17,13 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthTokenProvider, HttpContextTokenValue>();
 builder.Services.AddScoped<ITenantProvider, HttpContextTenantValue>();
 
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add<ExceptionFilter>();
-});
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddApiConventions();
+builder.Services.AddOpenApiDocumentation();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.MapOpenApiDocumentation();
 
 app.UseHttpsRedirection();
 
