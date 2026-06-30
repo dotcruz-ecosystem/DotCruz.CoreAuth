@@ -13,6 +13,7 @@ public class EmailService(
 ) : IEmailService
 {
     private readonly Guid _serviceId = configuration.GetValue<Guid>("ServiceId");
+    private readonly string _frontendUrl = configuration.GetValue<string>("Settings:FrontendUrl") ?? "http://localhost:3000";
 
     public async Task SendPasswordResetEmailAsync(string email, string name, string token, CancellationToken cancellationToken)
     {
@@ -25,7 +26,7 @@ public class EmailService(
             TemplateData: new Dictionary<string, object> 
             { 
                 { "name", name },
-                { "token", token }
+                { "link", $"{_frontendUrl}/reset-password?token={token}" }
             }
         );
 
@@ -62,7 +63,7 @@ public class EmailService(
             TemplateData: new Dictionary<string, object> 
             { 
                 { "name", name },
-                { "token", token }
+                { "link", $"{_frontendUrl}/activate?token={token}" }
             }
         );
 
