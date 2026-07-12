@@ -97,20 +97,20 @@ jobs:
             mv -f docker-compose.prod.yml docker-compose.yml 2>/dev/null || true
             
             cat <<'EOF' > .env
-            DOCKER_IMAGE_TAG=ghcr.io/${{ env.REPO_NAME }}/dotcruz-coreauth-api:latest
-            POSTGRES_CONNECTION_STRING=${{ secrets.POSTGRES_CONNECTION_STRING }}
-            SERVICE_ID=${{ secrets.SERVICE_ID }}
-            NOTIFICATION_BASE_URL=${{ secrets.NOTIFICATION_BASE_URL }}
-            COREAUTH_SERVICE_KEY=${{ secrets.COREAUTH_SERVICE_KEY }}
-            TENANTS_SERVICE_KEY=${{ secrets.TENANTS_SERVICE_KEY }}
-            JWT_ISSUER=${{ secrets.JWT_ISSUER }}
-            JWT_AUDIENCE=${{ secrets.JWT_AUDIENCE }}
-            JWT_KID=${{ secrets.JWT_KID }}
-            JWT_JWKS_URL=${{ secrets.JWT_JWKS_URL }}
-            JWT_PRIVATE_KEY_PEM=${{ secrets.JWT_PRIVATE_KEY_PEM }}
-            JWT_EXPIRATION_MINUTES=${{ secrets.JWT_EXPIRATION_MINUTES }}
-            JWT_REFRESH_EXPIRATION_DAYS=${{ secrets.JWT_REFRESH_EXPIRATION_DAYS }}
-            PASSWORD_RESET_EXPIRATION_MINUTES=${{ secrets.PASSWORD_RESET_EXPIRATION_MINUTES }}
+            DOCKER_IMAGE_TAG="ghcr.io/${{ env.REPO_NAME }}/dotcruz-coreauth-api:latest"
+            POSTGRES_CONNECTION_STRING="${{ secrets.POSTGRES_CONNECTION_STRING }}"
+            SERVICE_ID="${{ secrets.SERVICE_ID }}"
+            NOTIFICATION_BASE_URL="${{ secrets.NOTIFICATION_BASE_URL }}"
+            COREAUTH_SERVICE_KEY="${{ secrets.COREAUTH_SERVICE_KEY }}"
+            TENANTS_SERVICE_KEY="${{ secrets.TENANTS_SERVICE_KEY }}"
+            JWT_ISSUER="${{ secrets.JWT_ISSUER }}"
+            JWT_AUDIENCE="${{ secrets.JWT_AUDIENCE }}"
+            JWT_KID="${{ secrets.JWT_KID }}"
+            JWT_JWKS_URL="${{ secrets.JWT_JWKS_URL }}"
+            JWT_PRIVATE_KEY_PEM="${{ secrets.JWT_PRIVATE_KEY_PEM }}"
+            JWT_EXPIRATION_MINUTES="${{ secrets.JWT_EXPIRATION_MINUTES }}"
+            JWT_REFRESH_EXPIRATION_DAYS="${{ secrets.JWT_REFRESH_EXPIRATION_DAYS }}"
+            PASSWORD_RESET_EXPIRATION_MINUTES="${{ secrets.PASSWORD_RESET_EXPIRATION_MINUTES }}"
             EOF
             
             chmod 600 .env
