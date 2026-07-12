@@ -24,6 +24,9 @@ jobs:
       - name: Install dotnet-ef Tool
         run: dotnet tool install --global dotnet-ef
 
+      - name: Restore NuGet Packages
+        run: dotnet restore
+
       - name: Build EF Migrations Bundle
         run: |
           dotnet ef migrations bundle \
