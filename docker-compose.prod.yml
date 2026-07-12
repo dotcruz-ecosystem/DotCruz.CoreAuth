@@ -10,10 +10,16 @@ services:
       - ConnectionStrings__PostgresqlConnection=${POSTGRES_CONNECTION_STRING}
       - ServiceId=${SERVICE_ID}
       - Settings__Notification__BaseUrl=${NOTIFICATION_BASE_URL}
-      - Settings__Notification__ApiKey=${DOT_CRUZ_API_KEY}
-      - Settings__JwtTokenSettings__ExpirationTimeMinutes=${JWT_EXPIRATION_MINUTES}
-      - Settings__JwtTokenSettings__RefreshTokenExpirationTimeDays=${JWT_REFRESH_EXPIRATION_DAYS}
-      - Settings__JwtTokenSettings__SigningKey=${JWT_SIGNING_KEY}
+      - Settings__ServiceAuth__Self__Name=CoreAuth
+      - Settings__ServiceAuth__Self__Key=${COREAUTH_SERVICE_KEY}
+      - Settings__ServiceAuth__Keys__Tenants=${TENANTS_SERVICE_KEY}
+      - Settings__Jwt__Issuer=${JWT_ISSUER}
+      - Settings__Jwt__Audience=${JWT_AUDIENCE}
+      - Settings__Jwt__Kid=${JWT_KID}
+      - Settings__Jwt__JwksUrl=${JWT_JWKS_URL}
+      - Settings__Jwt__PrivateKeyPem=${JWT_PRIVATE_KEY_PEM}
+      - Settings__Jwt__ExpirationTimeMinutes=${JWT_EXPIRATION_MINUTES}
+      - Settings__Jwt__RefreshTokenExpirationTimeDays=${JWT_REFRESH_EXPIRATION_DAYS}
       - Settings__PasswordResetTokenSettings__ExpirationTimeInMinutes=${PASSWORD_RESET_EXPIRATION_MINUTES}
     networks:
       - dotcruz_net

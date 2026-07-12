@@ -18,6 +18,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
         private readonly IAccessTokenGenerator _accessTokenGenerator;
         private readonly IRefreshTokenGenerator _refreshTokenGenerator;
         private readonly IRefreshTokenWriteRepository _refreshTokenWriteRepository;
+        private readonly ITokenProvider _tokenProvider;
         private readonly IUnitOfWork _unitOfWork;
         private readonly JwtTokenSettings _jwtTokenSettings;
 
@@ -27,6 +28,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
             IAccessTokenGenerator accessTokenGenerator,
             IRefreshTokenGenerator refreshTokenGenerator,
             IRefreshTokenWriteRepository refreshTokenWriteRepository,
+            ITokenProvider tokenProvider,
             IUnitOfWork unitOfWork,
             IOptions<JwtTokenSettings> jwtTokenSettings)
         {
@@ -35,6 +37,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
             _accessTokenGenerator = accessTokenGenerator;
             _refreshTokenGenerator = refreshTokenGenerator;
             _refreshTokenWriteRepository = refreshTokenWriteRepository;
+            _tokenProvider = tokenProvider;
             _unitOfWork = unitOfWork;
             _jwtTokenSettings = jwtTokenSettings.Value;
         }
@@ -45,16 +48,18 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
 
             var user = await _userReadRepository.GetUserByEmailAsync(email, cancellationToken) 
                 ?? throw new InvalidLoginException();
-            var passwordMatch = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash);
+
+            var passwordMatch = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash!);
 
             if (!passwordMatch)
                 throw new InvalidLoginException();
 
             var accessToken = _accessTokenGenerator.Generate(user);
             var refreshTokenString = _refreshTokenGenerator.Generate();
+            var hashedRefreshToken = _tokenProvider.Hash(refreshTokenString);
 
             var refreshToken = new RefreshToken(
-                refreshTokenString,
+                hashedRefreshToken,
                 DateTime.UtcNow.AddDays(_jwtTokenSettings.RefreshTokenExpirationTimeDays),
                 user.Id
             );

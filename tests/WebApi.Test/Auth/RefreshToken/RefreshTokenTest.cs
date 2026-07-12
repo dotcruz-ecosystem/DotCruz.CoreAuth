@@ -34,8 +34,8 @@ public class RefreshTokenTest : DotCruzCoreAuthClassFixture
         await using var responseBody = await response.Content.ReadAsStreamAsync();
         var responseData = await JsonDocument.ParseAsync(responseBody);
 
-        responseData.RootElement.GetProperty("accessToken").GetString().Should().NotBeNullOrWhiteSpace();
-        responseData.RootElement.GetProperty("refreshToken").GetString().Should().NotBeNullOrWhiteSpace().And.NotBe(_refreshToken);
+        responseData.RootElement.GetProperty("access_token").GetString().Should().NotBeNullOrWhiteSpace();
+        responseData.RootElement.GetProperty("refresh_token").GetString().Should().NotBeNullOrWhiteSpace().And.NotBe(_refreshToken);
     }
 
     [Theory]

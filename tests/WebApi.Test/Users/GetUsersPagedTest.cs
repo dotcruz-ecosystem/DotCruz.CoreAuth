@@ -19,17 +19,17 @@ public class GetUsersPagedTest : DotCruzCoreAuthClassFixture
     [Fact]
     public async Task Success()
     {
-        var response = await DoGet(method: $"{METHOD}?pageNumber=1&pageSize=10", tenantId: _tenantId.ToString());
+        var response = await DoGet(method: $"{METHOD}?page_number=1&page_size=10", tenantId: _tenantId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         await using var responseBody = await response.Content.ReadAsStreamAsync();
         var responseData = await JsonDocument.ParseAsync(responseBody);
 
-        responseData.RootElement.GetProperty("pageNumber").GetInt32().Should().Be(1);
-        responseData.RootElement.GetProperty("pageSize").GetInt32().Should().Be(10);
-        responseData.RootElement.GetProperty("totalCount").GetInt32().Should().BeGreaterThanOrEqualTo(2);
-        responseData.RootElement.GetProperty("totalPages").GetInt32().Should().BeGreaterThanOrEqualTo(1);
+        responseData.RootElement.GetProperty("page_number").GetInt32().Should().Be(1);
+        responseData.RootElement.GetProperty("page_size").GetInt32().Should().Be(10);
+        responseData.RootElement.GetProperty("total_count").GetInt32().Should().BeGreaterThanOrEqualTo(2);
+        responseData.RootElement.GetProperty("total_pages").GetInt32().Should().BeGreaterThanOrEqualTo(1);
 
         var items = responseData.RootElement.GetProperty("items").EnumerateArray();
         items.Should().NotBeEmpty();

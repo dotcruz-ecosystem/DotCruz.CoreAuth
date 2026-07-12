@@ -31,7 +31,11 @@ namespace DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Generator
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddMinutes(_jwtTokenSettings.ExpirationTimeMinutes),
-                SigningCredentials = new SigningCredentials(SecurityKey(_jwtTokenSettings.SigningKey), SecurityAlgorithms.HmacSha256Signature)
+                Issuer = _jwtTokenSettings.Issuer,
+                Audience = _jwtTokenSettings.Audience,
+                SigningCredentials = new SigningCredentials(
+                    SecurityKey(_jwtTokenSettings.PrivateKeyPem, _jwtTokenSettings.Kid), 
+                    SecurityAlgorithms.RsaSha256)
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();

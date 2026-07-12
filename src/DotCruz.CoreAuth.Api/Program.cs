@@ -7,12 +7,14 @@ using DotCruz.CoreAuth.Common;
 using DotCruz.CoreAuth.Domain.Interfaces.Security;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
 using DotCruz.CoreAuth.Infrastructure;
+using DotCruz.Shared.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCommonConfiguration(builder.Configuration);
+builder.Services.AddSharedSecurity(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthTokenProvider, HttpContextTokenValue>();
 builder.Services.AddScoped<ITenantProvider, HttpContextTenantValue>();
@@ -29,6 +31,7 @@ app.UseHttpsRedirection();
 
 app.UseMiddleware<CultureMiddleware>();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

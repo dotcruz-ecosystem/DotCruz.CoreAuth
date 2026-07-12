@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace WebApi.Test;
 
@@ -7,6 +8,12 @@ public class DotCruzCoreAuthClassFixture : IClassFixture<CustomWebApplicationFac
     private readonly HttpClient _httpClient;
 
     public DotCruzCoreAuthClassFixture(CustomWebApplicationFactory factory) => _httpClient = factory.CreateClient();
+
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        DictionaryKeyPolicy = JsonNamingPolicy.SnakeCaseLower
+    };
 
     protected async Task<HttpResponseMessage> DoPost(
         string method,
@@ -19,7 +26,7 @@ public class DotCruzCoreAuthClassFixture : IClassFixture<CustomWebApplicationFac
         AuthorizeRequest(token);
         AddTenantHeader(tenantId);
 
-        return await _httpClient.PostAsJsonAsync(method, request);
+        return await _httpClient.PostAsJsonAsync(method, request, JsonSerializerOptions);
     }
 
     protected async Task<HttpResponseMessage> DoGet(
@@ -46,7 +53,7 @@ public class DotCruzCoreAuthClassFixture : IClassFixture<CustomWebApplicationFac
         AuthorizeRequest(token);
         AddTenantHeader(tenantId);
 
-        return await _httpClient.PutAsJsonAsync(method, request);
+        return await _httpClient.PutAsJsonAsync(method, request, JsonSerializerOptions);
     }
 
     protected async Task<HttpResponseMessage> DoPatch(
@@ -60,7 +67,7 @@ public class DotCruzCoreAuthClassFixture : IClassFixture<CustomWebApplicationFac
         AuthorizeRequest(token);
         AddTenantHeader(tenantId);
 
-        return await _httpClient.PatchAsJsonAsync(method, request);
+        return await _httpClient.PatchAsJsonAsync(method, request, JsonSerializerOptions);
     }
 
     protected async Task<HttpResponseMessage> DoDelete(

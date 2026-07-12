@@ -3,6 +3,7 @@ using CommonTestUtilities.Entities.Tokens;
 using CommonTestUtilities.Entities.Users;
 using CommonTestUtilities.Repositories.Tokens;
 using CommonTestUtilities.Requests.Auth;
+using CommonTestUtilities.Security;
 using DotCruz.CoreAuth.Domain.Enums.Users;
 using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
 using DotCruz.CoreAuth.Domain.Exceptions.Resources;
@@ -15,16 +16,19 @@ namespace Command.Test.Auth.RefreshToken;
 
 public class RefreshTokenCommandHandlerTests
 {
+    private readonly ITokenProvider _tokenProvider = new TestTokenProvider();
+
     [Fact]
     public async Task Success()
     {
         var user = UserBuilder.Build(status: UserStatus.Active);
         var command = RefreshTokenCommandBuilder.Build();
-        var token = RefreshTokenBuilder.Build(token: command.RefreshToken, userId: user.Id);
+        var hashedToken = _tokenProvider.Hash(command.RefreshToken);
+        var token = RefreshTokenBuilder.Build(token: hashedToken, userId: user.Id);
         typeof(RefreshTokenEntity).GetProperty(nameof(RefreshTokenEntity.User))?.SetValue(token, user);
 
         var readRepository = new RefreshTokenReadRepositoryBuilder()
-            .SetupGetByToken(command.RefreshToken, token)
+            .SetupGetByToken(hashedToken, token)
             .Build();
 
         var writeRepository = new RefreshTokenWriteRepositoryBuilder().Build();
@@ -40,6 +44,7 @@ public class RefreshTokenCommandHandlerTests
             .SetRefreshTokenWriteRepository(writeRepository)
             .SetAccessTokenGenerator(accessTokenGenerator.Object)
             .SetRefreshTokenGenerator(refreshTokenGenerator.Object)
+            .SetTokenProvider(_tokenProvider)
             .Build();
 
         var result = await handler.Handle(command, TestContext.Current.CancellationToken);
@@ -53,13 +58,15 @@ public class RefreshTokenCommandHandlerTests
     public async Task Error_Token_NotFound()
     {
         var command = RefreshTokenCommandBuilder.Build();
+        var hashedToken = _tokenProvider.Hash(command.RefreshToken);
 
         var readRepository = new RefreshTokenReadRepositoryBuilder()
-            .SetupGetByToken(command.RefreshToken, null)
+            .SetupGetByToken(hashedToken, null)
             .Build();
 
         var handler = new RefreshTokenCommandHandlerBuilder()
             .SetRefreshTokenReadRepository(readRepository)
+            .SetTokenProvider(_tokenProvider)
             .Build();
 
         var act = () => handler.Handle(command, TestContext.Current.CancellationToken);
@@ -73,21 +80,23 @@ public class RefreshTokenCommandHandlerTests
     {
         var user = UserBuilder.Build(status: UserStatus.Active);
         var command = RefreshTokenCommandBuilder.Build();
+        var hashedToken = _tokenProvider.Hash(command.RefreshToken);
         
         // Token expirado (ExpiresAt no passado, mutado via reflexao para passar na validacao do construtor)
         var token = RefreshTokenBuilder.Build(
-            token: command.RefreshToken, 
+            token: hashedToken, 
             userId: user.Id
         );
         typeof(RefreshTokenEntity).GetProperty(nameof(RefreshTokenEntity.ExpiresAt))?.SetValue(token, DateTimeOffset.UtcNow.AddMinutes(-5));
         typeof(RefreshTokenEntity).GetProperty(nameof(RefreshTokenEntity.User))?.SetValue(token, user);
 
         var readRepository = new RefreshTokenReadRepositoryBuilder()
-            .SetupGetByToken(command.RefreshToken, token)
+            .SetupGetByToken(hashedToken, token)
             .Build();
 
         var handler = new RefreshTokenCommandHandlerBuilder()
             .SetRefreshTokenReadRepository(readRepository)
+            .SetTokenProvider(_tokenProvider)
             .Build();
 
         var act = () => handler.Handle(command, TestContext.Current.CancellationToken);
@@ -101,18 +110,20 @@ public class RefreshTokenCommandHandlerTests
     {
         var user = UserBuilder.Build(status: UserStatus.Active);
         var command = RefreshTokenCommandBuilder.Build();
-        var token = RefreshTokenBuilder.Build(token: command.RefreshToken, userId: user.Id);
+        var hashedToken = _tokenProvider.Hash(command.RefreshToken);
+        var token = RefreshTokenBuilder.Build(token: hashedToken, userId: user.Id);
         typeof(RefreshTokenEntity).GetProperty(nameof(RefreshTokenEntity.User))?.SetValue(token, user);
         
         // Revoga o token
         token.Revoke();
 
         var readRepository = new RefreshTokenReadRepositoryBuilder()
-            .SetupGetByToken(command.RefreshToken, token)
+            .SetupGetByToken(hashedToken, token)
             .Build();
 
         var handler = new RefreshTokenCommandHandlerBuilder()
             .SetRefreshTokenReadRepository(readRepository)
+            .SetTokenProvider(_tokenProvider)
             .Build();
 
         var act = () => handler.Handle(command, TestContext.Current.CancellationToken);
@@ -125,17 +136,19 @@ public class RefreshTokenCommandHandlerTests
     public async Task Error_User_NotFound()
     {
         var command = RefreshTokenCommandBuilder.Build();
-        var token = RefreshTokenBuilder.Build(token: command.RefreshToken);
+        var hashedToken = _tokenProvider.Hash(command.RefreshToken);
+        var token = RefreshTokenBuilder.Build(token: hashedToken);
         
         // User é nulo
         typeof(RefreshTokenEntity).GetProperty(nameof(RefreshTokenEntity.User))?.SetValue(token, null);
 
         var readRepository = new RefreshTokenReadRepositoryBuilder()
-            .SetupGetByToken(command.RefreshToken, token)
+            .SetupGetByToken(hashedToken, token)
             .Build();
 
         var handler = new RefreshTokenCommandHandlerBuilder()
             .SetRefreshTokenReadRepository(readRepository)
+            .SetTokenProvider(_tokenProvider)
             .Build();
 
         var act = () => handler.Handle(command, TestContext.Current.CancellationToken);
@@ -149,15 +162,17 @@ public class RefreshTokenCommandHandlerTests
     {
         var user = UserBuilder.Build(status: UserStatus.Blocked); // Inativo/Bloqueado
         var command = RefreshTokenCommandBuilder.Build();
-        var token = RefreshTokenBuilder.Build(token: command.RefreshToken, userId: user.Id);
+        var hashedToken = _tokenProvider.Hash(command.RefreshToken);
+        var token = RefreshTokenBuilder.Build(token: hashedToken, userId: user.Id);
         typeof(RefreshTokenEntity).GetProperty(nameof(RefreshTokenEntity.User))?.SetValue(token, user);
 
         var readRepository = new RefreshTokenReadRepositoryBuilder()
-            .SetupGetByToken(command.RefreshToken, token)
+            .SetupGetByToken(hashedToken, token)
             .Build();
 
         var handler = new RefreshTokenCommandHandlerBuilder()
             .SetRefreshTokenReadRepository(readRepository)
+            .SetTokenProvider(_tokenProvider)
             .Build();
 
         var act = () => handler.Handle(command, TestContext.Current.CancellationToken);

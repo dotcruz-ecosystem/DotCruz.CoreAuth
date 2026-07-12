@@ -14,6 +14,7 @@ using DotCruz.CoreAuth.Infrastructure.Security.Password;
 using DotCruz.CoreAuth.Infrastructure.Security.Tokens;
 using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Generator;
 using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Validator;
+using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Jwks;
 using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Refresh;
 using DotCruz.CoreAuth.Infrastructure.Services.LoggedUser;
 using DotCruz.CoreAuth.Infrastructure.Services.Notification;
@@ -21,7 +22,6 @@ using DotCruz.CoreAuth.Infrastructure.Services.TenantResolver;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace DotCruz.CoreAuth.Infrastructure;
 
@@ -69,6 +69,7 @@ public static class DependencyInjection
             services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
             services.AddScoped<IAccessTokenValidator, JwtTokenValidator>();
             services.AddScoped<ITokenProvider, CryptographyTokenProvider>();
+            services.AddScoped<IJwksKeyProvider, JwksKeyProvider>();
         }
 
         private static void AddServices(IServiceCollection services, IConfiguration configuration)
@@ -78,9 +79,8 @@ public static class DependencyInjection
             services.AddHttpClient<IEmailService, EmailService>(client =>
             {
                 client.BaseAddress = new Uri(notificationSettings!.BaseUrl);
-
-                client.DefaultRequestHeaders.Add("X-Api-Key", notificationSettings!.ApiKey);
-            });
+            })
+            .AddServiceApiKeyPropagation();
 
             services.AddScoped<ILoggedUser, LoggedUser>();
             services.AddScoped<ITenantResolver, TenantResolver>();

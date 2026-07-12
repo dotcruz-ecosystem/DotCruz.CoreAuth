@@ -40,8 +40,8 @@ public class DoLoginTest : DotCruzCoreAuthClassFixture
 
         responseData.RootElement.GetProperty("name").GetString().Should().NotBeNullOrWhiteSpace().And.Be(_name);
         responseData.RootElement.GetProperty("email").GetString().Should().NotBeNullOrWhiteSpace().And.Be(_email.ToLowerInvariant());
-        responseData.RootElement.GetProperty("tokens").GetProperty("accessToken").GetString().Should().NotBeNullOrWhiteSpace();
-        responseData.RootElement.GetProperty("tokens").GetProperty("refreshToken").GetString().Should().NotBeNullOrWhiteSpace();
+        responseData.RootElement.GetProperty("tokens").GetProperty("access_token").GetString().Should().NotBeNullOrWhiteSpace();
+        responseData.RootElement.GetProperty("tokens").GetProperty("refresh_token").GetString().Should().NotBeNullOrWhiteSpace();
     }
 
     [Theory]

@@ -46,10 +46,10 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
         var user = await CreateUser(request, cancellationToken);
 
         var plainToken = await CreateActivationToken(user.Id, cancellationToken);
-
-        await _unitOfWork.CommitAsync(cancellationToken);
-
+        
         await _emailService.SendActivationEmailAsync(user.Email, user.Name, plainToken, cancellationToken);
+        
+        await _unitOfWork.CommitAsync(cancellationToken);
 
         return user.Id;
     }

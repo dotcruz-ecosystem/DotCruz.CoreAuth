@@ -18,6 +18,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
     private readonly IRefreshTokenWriteRepository _refreshTokenWriteRepository;
     private readonly IAccessTokenGenerator _accessTokenGenerator;
     private readonly IRefreshTokenGenerator _refreshTokenGenerator;
+    private readonly ITokenProvider _tokenProvider;
     private IUnitOfWork _unitOfWork;
     private readonly JwtTokenSettings _jwtTokenSettings;
 
@@ -26,6 +27,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         IRefreshTokenWriteRepository refreshTokenWriteRepository,
         IAccessTokenGenerator accessTokenGenerator,
         IRefreshTokenGenerator refreshTokenGenerator,
+        ITokenProvider tokenProvider,
         IUnitOfWork unitOfWork,
         IOptions<JwtTokenSettings> jwtTokenSettings
     )
@@ -34,13 +36,15 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         _refreshTokenWriteRepository = refreshTokenWriteRepository;
         _accessTokenGenerator = accessTokenGenerator;
         _refreshTokenGenerator = refreshTokenGenerator;
+        _tokenProvider = tokenProvider;
         _unitOfWork = unitOfWork;
         _jwtTokenSettings = jwtTokenSettings.Value;
     }
 
     public async Task<ResponseTokensDto> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var refreshToken = await _refreshTokenReadRepository.GetByTokenAsync(request.RefreshToken, cancellationToken);
+        var hashedToken = _tokenProvider.Hash(request.RefreshToken);
+        var refreshToken = await _refreshTokenReadRepository.GetByTokenAsync(hashedToken, cancellationToken);
 
         ValidateToken(refreshToken);
 
@@ -72,9 +76,10 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
     private async Task<string> CreateNewRefreshToken(Guid userId, CancellationToken cancellationToken)
     {
         var newRefreshTokenString = _refreshTokenGenerator.Generate();
+        var hashedRefreshToken = _tokenProvider.Hash(newRefreshTokenString);
 
         var newRefreshToken = new RefreshToken(
-            newRefreshTokenString,
+            hashedRefreshToken,
             DateTimeOffset.UtcNow.AddDays(_jwtTokenSettings.RefreshTokenExpirationTimeDays),
             userId
         );

@@ -2,7 +2,7 @@ using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
 
 namespace DotCruz.CoreAuth.Infrastructure.Security.Tokens.Refresh;
 
-public class RefreshTokenGenerator : IRefreshTokenGenerator
+public class RefreshTokenGenerator(ITokenProvider tokenProvider) : IRefreshTokenGenerator
 {
-    public string Generate() => Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+    public string Generate() => tokenProvider.Value();
 }

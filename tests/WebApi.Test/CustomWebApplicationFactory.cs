@@ -19,6 +19,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     private User _user = default!;
     private string _password = string.Empty;
     private RefreshToken _refreshToken = default!;
+    private string _refreshTokenValue = string.Empty;
 
     private User _pendingUser = default!;
     private ActivationToken _activationToken = default!;
@@ -32,21 +33,23 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        var randomSigningKey = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(64));
+        using var rsa = System.Security.Cryptography.RSA.Create(2048);
+        var privateKeyPem = rsa.ExportPkcs8PrivateKeyPem();
+
+        Environment.SetEnvironmentVariable("Settings__Jwt__Issuer", "test-issuer");
+        Environment.SetEnvironmentVariable("Settings__Jwt__Audience", "test-audience");
+        Environment.SetEnvironmentVariable("Settings__Jwt__JwksUrl", "https://localhost:8080/.well-known/jwks.json");
+        Environment.SetEnvironmentVariable("Settings__Jwt__Kid", "test-kid");
+        Environment.SetEnvironmentVariable("Settings__Jwt__PrivateKeyPem", privateKeyPem);
+        Environment.SetEnvironmentVariable("Settings__Jwt__ExpirationTimeMinutes", "60");
+        Environment.SetEnvironmentVariable("Settings__Jwt__RefreshTokenExpirationTimeDays", "7");
+        Environment.SetEnvironmentVariable("Settings__PasswordResetTokenSettings__ExpirationTimeInMinutes", "60");
+        Environment.SetEnvironmentVariable("Settings__Notification__BaseUrl", "https://localhost:5001");
+        Environment.SetEnvironmentVariable("Settings__Notification__ApiKey", "test-api-key");
+        Environment.SetEnvironmentVariable("Settings__ServiceAuth__Self__Name", "test-service");
+        Environment.SetEnvironmentVariable("Settings__ServiceAuth__Self__Key", "test-service-key");
 
         builder.UseEnvironment("Test")
-            .ConfigureAppConfiguration((context, config) =>
-            {
-                config.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    { "Settings:JwtTokenSettings:SigningKey", randomSigningKey },
-                    { "Settings:JwtTokenSettings:ExpirationTimeMinutes", "60" },
-                    { "Settings:JwtTokenSettings:RefreshTokenExpirationTimeDays", "7" },
-                    { "Settings:PasswordResetTokenSettings:ExpirationTimeInMinutes", "60" },
-                    { "Settings:Notification:BaseUrl", "https://localhost:5001" },
-                    { "Settings:Notification:ApiKey", "test-api-key" }
-                });
-            })
             .ConfigureServices(services =>
             {
                 var dbDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<CoreAuthDbContext>));
@@ -109,7 +112,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public string GetName() => _user.Name;
     public Guid GetUserId() => _user.Id;
     public Guid? GetTenantId() => _user.TenantId;
-    public string GetRefreshToken() => _refreshToken.Token;
+    public string GetRefreshToken() => _refreshTokenValue;
 
     public string GenerateAccessToken(User user)
     {
@@ -156,8 +159,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         
             dbContext.Users.Add(_user);
 
+            _refreshTokenValue = tokenProvider.Value();
+            var hashedRefreshToken = tokenProvider.Hash(_refreshTokenValue);
             _refreshToken = RefreshTokenBuilder.Build(
-                token: Guid.NewGuid().ToString(),
+                token: hashedRefreshToken,
                 expiresAt: DateTimeOffset.UtcNow.AddDays(7),
                 userId: _user.Id
             );

@@ -20,6 +20,7 @@ namespace CommonTestUtilities.Commands.Users
         private IAccessTokenGenerator _accessTokenGenerator = new Mock<IAccessTokenGenerator>().Object;
         private IRefreshTokenGenerator _refreshTokenGenerator = new Mock<IRefreshTokenGenerator>().Object;
         private IRefreshTokenWriteRepository _refreshTokenWriteRepository = new Mock<IRefreshTokenWriteRepository>().Object;
+        private ITokenProvider _tokenProvider = new TestTokenProvider();
         private IUnitOfWork _unitOfWork = UnitOfWorkBuilder.Build();
         private IOptions<JwtTokenSettings> _jwtTokenSettings = Options.Create(new JwtTokenSettings { RefreshTokenExpirationTimeDays = 7 });
 
@@ -47,6 +48,12 @@ namespace CommonTestUtilities.Commands.Users
             return this;
         }
 
+        public LoginCommandHandlerBuilder SetTokenProvider(ITokenProvider tokenProvider)
+        {
+            _tokenProvider = tokenProvider;
+            return this;
+        }
+
         public LoginCommandHandler Build()
         {
             return new LoginCommandHandler(
@@ -55,6 +62,7 @@ namespace CommonTestUtilities.Commands.Users
                 _accessTokenGenerator,
                 _refreshTokenGenerator,
                 _refreshTokenWriteRepository,
+                _tokenProvider,
                 _unitOfWork,
                 _jwtTokenSettings
             );

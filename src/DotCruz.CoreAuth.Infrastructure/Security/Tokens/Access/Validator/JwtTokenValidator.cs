@@ -1,4 +1,4 @@
-﻿using DotCruz.CoreAuth.Common.Settings;
+using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -20,10 +20,14 @@ namespace DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Validator
         {
             var validationParameter = new TokenValidationParameters
             {
-                ValidateAudience = false,
-                ValidateIssuer = false,
-                IssuerSigningKey = SecurityKey(_jwtTokenSettings.SigningKey),
-                ClockSkew = new TimeSpan(0)
+                ValidateAudience = true,
+                ValidAudience = _jwtTokenSettings.Audience,
+                ValidateIssuer = true,
+                ValidIssuer = _jwtTokenSettings.Issuer,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = SecurityKey(_jwtTokenSettings.PrivateKeyPem, _jwtTokenSettings.Kid),
+                ClockSkew = TimeSpan.Zero
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();

@@ -1,15 +1,19 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 namespace DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access
 {
     public abstract class JwtTokenHandler
     {
-        protected static SymmetricSecurityKey SecurityKey(string signingKey)
+        protected static RsaSecurityKey SecurityKey(string privateKeyPem, string kid)
         {
-            var bytes = Encoding.UTF8.GetBytes(signingKey);
+            var rsa = RSA.Create();
+            rsa.ImportFromPem(privateKeyPem);
 
-            return new SymmetricSecurityKey(bytes);
+            return new RsaSecurityKey(rsa)
+            {
+                KeyId = kid
+            };
         }
     }
 }

@@ -174,4 +174,7 @@
   <data name="USER_WITHOUT_PERMISSION_ACCESS_RESOURCE" xml:space="preserve">
     <value>Você não tem permissão para acessar esse recurso.</value>
   </data>
+  <data name="JWKS_NOT_FOUND" xml:space="preserve">
+    <value>A configuração do JWKS está incompleta.</value>
+  </data>
 </root>

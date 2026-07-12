@@ -17,7 +17,7 @@ namespace DotCruz.CoreAuth.Common
         private static void AddJwtTokenSettings(IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<JwtTokenSettings>(
-                configuration.GetSection("Settings:JwtTokenSettings")
+                configuration.GetSection("Settings:Jwt")
             );
         }
 

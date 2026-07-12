@@ -57,9 +57,9 @@ public class UserTest
     [Fact]
     public void Success_On_Update()
     {
-        var user = UserBuilder.Build();
+        var user = UserBuilder.Build(type: UserType.TenantUser);
 
-        var newData = UserBuilder.Build();
+        var newData = UserBuilder.Build(type: UserType.TenantUser);
 
         user.Update(newData.Name, newData.Email, newData.PasswordHash, newData.Type, newData.TenantId);
 
