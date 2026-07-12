@@ -16,6 +16,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install dotnet-ef Tool
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Build EF Migrations Bundle
+        run: |
+          dotnet ef migrations bundle \
+            --project src/DotCruz.CoreAuth.Infrastructure \
+            --startup-project src/DotCruz.CoreAuth.Api \
+            --self-contained \
+            -r linux-x64 \
+            -o coreauth-bundle
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -50,14 +67,14 @@ jobs:
           script: |
             mkdir -p ${{ secrets.VPS_COREAUTH_DEPLOY_PATH }}
 
-      - name: Copy docker-compose.prod.yml to VPS
+      - name: Copy docker-compose.prod.yml and Migration Bundle to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
-          source: "docker-compose.prod.yml"
+          source: "docker-compose.prod.yml,coreauth-bundle"
           target: "${{ secrets.VPS_COREAUTH_DEPLOY_PATH }}"
 
       - name: Deploy to VPS via SSH
@@ -70,6 +87,10 @@ jobs:
           script: |
             cd ${{ secrets.VPS_COREAUTH_DEPLOY_PATH }}
             
+            chmod +x coreauth-bundle
+            ./coreauth-bundle --connection "${{ secrets.POSTGRES_CONNECTION_STRING }}"
+            rm -f coreauth-bundle
+            
             mv -f docker-compose.prod.yml docker-compose.yml 2>/dev/null || true
             
             cat <<'EOF' > .env
@@ -77,10 +98,15 @@ jobs:
             POSTGRES_CONNECTION_STRING=${{ secrets.POSTGRES_CONNECTION_STRING }}
             SERVICE_ID=${{ secrets.SERVICE_ID }}
             NOTIFICATION_BASE_URL=${{ secrets.NOTIFICATION_BASE_URL }}
-            DOT_CRUZ_API_KEY=${{ secrets.DOT_CRUZ_API_KEY }}
+            COREAUTH_SERVICE_KEY=${{ secrets.COREAUTH_SERVICE_KEY }}
+            TENANTS_SERVICE_KEY=${{ secrets.TENANTS_SERVICE_KEY }}
+            JWT_ISSUER=${{ secrets.JWT_ISSUER }}
+            JWT_AUDIENCE=${{ secrets.JWT_AUDIENCE }}
+            JWT_KID=${{ secrets.JWT_KID }}
+            JWT_JWKS_URL=${{ secrets.JWT_JWKS_URL }}
+            JWT_PRIVATE_KEY_PEM=${{ secrets.JWT_PRIVATE_KEY_PEM }}
             JWT_EXPIRATION_MINUTES=${{ secrets.JWT_EXPIRATION_MINUTES }}
             JWT_REFRESH_EXPIRATION_DAYS=${{ secrets.JWT_REFRESH_EXPIRATION_DAYS }}
-            JWT_SIGNING_KEY=${{ secrets.JWT_SIGNING_KEY }}
             PASSWORD_RESET_EXPIRATION_MINUTES=${{ secrets.PASSWORD_RESET_EXPIRATION_MINUTES }}
             EOF
             
