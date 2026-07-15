@@ -12,12 +12,12 @@ public class UserRepository(CoreAuthDbContext context)
 {
     public async Task<bool> ExistsActiveUserWithEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.AsNoTracking().AnyAsync(u => u.Email == email, cancellationToken);
+        return await _dbSet.AsNoTracking().IgnoreQueryFilters().AnyAsync(u => u.Email == email, cancellationToken);
     }
 
     public async Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+        return await _dbSet.AsNoTracking().IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
     public async Task<(IEnumerable<User> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
