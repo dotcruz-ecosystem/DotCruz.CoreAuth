@@ -21,6 +21,7 @@ services:
       - Settings__Jwt__ExpirationTimeMinutes=${JWT_EXPIRATION_MINUTES}
       - Settings__Jwt__RefreshTokenExpirationTimeDays=${JWT_REFRESH_EXPIRATION_DAYS}
       - Settings__PasswordResetTokenSettings__ExpirationTimeInMinutes=${PASSWORD_RESET_EXPIRATION_MINUTES}
+      - Settings__FrontendUrl=${FRONTEND_URL}
     networks:
       - dotcruz_net
     deploy:

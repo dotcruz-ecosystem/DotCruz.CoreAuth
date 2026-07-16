@@ -22,7 +22,8 @@ public class GetUserByIdQueryHandler(IUserReadRepository userReadRepository) : I
             user.Email,
             user.Type,
             user.Status,
-            user.TenantId
-        );
+            user.TenantId,
+            user.CreatedAt
+);
     }
 }

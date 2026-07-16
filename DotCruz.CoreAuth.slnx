@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Itens de Solução/">
+    <File Path="docker-compose.prod.yml" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/DotCruz.CoreAuth.Api/DotCruz.CoreAuth.Api.csproj" Id="da1a32f8-56a0-4186-9991-aaca2e3c05c9" />
     <Project Path="src/DotCruz.CoreAuth.Application/DotCruz.CoreAuth.Application.csproj" Id="9893eec4-5a55-4f3b-9596-b8b0cb4fcca2" />

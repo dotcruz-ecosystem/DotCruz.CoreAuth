@@ -20,7 +20,8 @@ public class GetUsersQueryHandler(IUserReadRepository userReadRepository)
             user.Email,
             user.Type,
             user.Status,
-            user.TenantId
+            user.TenantId,
+            user.CreatedAt
         )).ToList();
 
         var totalPages = totalCount == 0 ? 0 : (int)Math.Ceiling((double)totalCount / request.PageSize);
