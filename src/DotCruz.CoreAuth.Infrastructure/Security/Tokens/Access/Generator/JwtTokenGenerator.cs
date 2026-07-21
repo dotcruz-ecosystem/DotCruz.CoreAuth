@@ -18,7 +18,7 @@ namespace DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Generator
             _jwtTokenSettings = jwtTokenSettings.Value;
         }
 
-        public string Generate(User user)
+        public string Generate(User user, string? tenantType = null, string? tenantPlan = null)
         {
             var claims = new List<Claim>()
             {
@@ -26,6 +26,12 @@ namespace DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Generator
                 new(ClaimTypes.Role, user.Type.ToString()),
                 new(CustomClaimTypes.TenantId, user.TenantId.ToString())
             };
+
+            if (!string.IsNullOrWhiteSpace(tenantType))
+                claims.Add(new Claim(CustomClaimTypes.TenantType, tenantType));
+
+            if (!string.IsNullOrWhiteSpace(tenantPlan))
+                claims.Add(new Claim(CustomClaimTypes.TenantPlan, tenantPlan));
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

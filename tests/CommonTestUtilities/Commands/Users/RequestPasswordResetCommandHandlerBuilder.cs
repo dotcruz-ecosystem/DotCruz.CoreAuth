@@ -1,7 +1,7 @@
 using CommonTestUtilities.Data;
 using CommonTestUtilities.Repositories.Users;
 using DotCruz.CoreAuth.Application.Commands.Auth.PasswordResetTokens.RequestPasswordReset;
-using DotCruz.CoreAuth.Application.Interfaces.Services;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Interfaces.Data;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Tokens;

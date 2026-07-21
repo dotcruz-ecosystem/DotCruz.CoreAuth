@@ -1,16 +1,18 @@
 using CommonTestUtilities.Entities.Tokens;
 using CommonTestUtilities.Entities.Users;
 using CommonTestUtilities.Services;
-using DotCruz.CoreAuth.Application.Interfaces.Services;
 using DotCruz.CoreAuth.Domain.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Entities.Users;
 using DotCruz.CoreAuth.Domain.Enums.Users;
-using DotCruz.CoreAuth.Domain.Interfaces.Security;
+using DotCruz.Shared.Security.Context;
 using DotCruz.CoreAuth.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses;
 
 namespace WebApi.Test;
 
@@ -46,6 +48,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("Settings__PasswordResetTokenSettings__ExpirationTimeInMinutes", "60");
         Environment.SetEnvironmentVariable("Settings__Notification__BaseUrl", "https://localhost:5001");
         Environment.SetEnvironmentVariable("Settings__Notification__ApiKey", "test-api-key");
+        Environment.SetEnvironmentVariable("Settings__Tenant__BaseUrl", "https://localhost:5002");
         Environment.SetEnvironmentVariable("Settings__ServiceAuth__Self__Name", "test-service");
         Environment.SetEnvironmentVariable("Settings__ServiceAuth__Self__Key", "test-service-key");
 
@@ -89,7 +92,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                         tenantId = parsedGuid;
                     
                     var mock = new Mock<ITenantProvider>();
-                    mock.Setup(t => t.TenantId()).Returns(tenantId);
+                    mock.Setup(t => t.TenantId).Returns(tenantId);
                     return mock.Object;
                 });
 
@@ -98,6 +101,17 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     services.Remove(emailDescriptor);
 
                 services.AddScoped(_ => EmailServiceBuilder.Build());
+
+                var tenantClientDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(ITenantServiceClient));
+                if (tenantClientDescriptor is not null)
+                    services.Remove(tenantClientDescriptor);
+
+                var tenantServiceMock = new Mock<ITenantServiceClient>();
+                tenantServiceMock
+                    .Setup(s => s.GetTenantSummaryAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((Guid id, CancellationToken _) => new TenantSummaryDto(id, "Test Tenant", "test-tenant", "Active", "Standard", "Pro"));
+
+                services.AddScoped(_ => tenantServiceMock.Object);
 
                 using var scope = services.BuildServiceProvider().CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<CoreAuthDbContext>();
@@ -203,11 +217,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 name: faker.Person.FullName,
                 email: faker.Internet.Email(),
                 passwordHashed: superAdminHash,
-                tenantId: null,
+                tenantId: tenantId,
                 status: UserStatus.Active
             );
         
-            _superAdminUser.Update(name: null, email: null, passwordHash: null, type: UserType.SuperAdmin, tenantId: null);
+            _superAdminUser.Update(name: null, email: null, passwordHash: null, type: UserType.SuperAdmin, tenantId: tenantId);
 
             dbContext.Users.Add(_superAdminUser);
 

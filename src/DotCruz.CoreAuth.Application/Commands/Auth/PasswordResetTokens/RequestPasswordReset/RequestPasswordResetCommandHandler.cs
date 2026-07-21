@@ -1,4 +1,4 @@
-using DotCruz.CoreAuth.Application.Interfaces.Services;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Interfaces.Data;

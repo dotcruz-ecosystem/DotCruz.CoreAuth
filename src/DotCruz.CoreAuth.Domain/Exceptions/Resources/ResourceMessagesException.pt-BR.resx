@@ -177,4 +177,10 @@
   <data name="JWKS_NOT_FOUND" xml:space="preserve">
     <value>A configuração do JWKS está incompleta.</value>
   </data>
+  <data name="UNKNOWN_ERROR_TENANT" xml:space="preserve">
+    <value>Ocorreu um erro desconhecido na API do CoreAuth.</value>
+  </data>
+  <data name="EXTERNAL_INTEGRATION_ERROR" xml:space="preserve">
+    <value>Erro de integração externa ({0}): {1}</value>
+  </data>
 </root>

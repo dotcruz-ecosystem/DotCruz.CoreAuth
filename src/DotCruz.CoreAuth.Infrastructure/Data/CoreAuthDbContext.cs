@@ -1,23 +1,22 @@
 using DotCruz.CoreAuth.Domain.Entities.Base;
 using DotCruz.CoreAuth.Domain.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Entities.Users;
-using DotCruz.CoreAuth.Domain.Interfaces.Security;
+using DotCruz.Shared.Security.Context;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Linq.Expressions;
 
 namespace DotCruz.CoreAuth.Infrastructure.Data;
 
 public class CoreAuthDbContext(
     DbContextOptions<CoreAuthDbContext> options,
-    ITenantResolver tenantResolver) : DbContext(options)
+    ITenantProvider tenantProvider) : DbContext(options)
 {
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<ActivationToken> ActivationTokens { get; set; }
 
-    public Guid TenantIdValue => tenantResolver.TenantId;
+    public Guid TenantIdValue => tenantProvider.TenantId ?? Guid.Empty;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

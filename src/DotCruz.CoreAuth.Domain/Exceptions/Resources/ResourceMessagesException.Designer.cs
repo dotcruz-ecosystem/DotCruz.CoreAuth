@@ -115,6 +115,15 @@ namespace DotCruz.CoreAuth.Domain.Exceptions.Resources {
         }
         
         /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a External integration error ({0}): {1}.
+        /// </summary>
+        public static string EXTERNAL_INTEGRATION_ERROR {
+            get {
+                return ResourceManager.GetString("EXTERNAL_INTEGRATION_ERROR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a The ID cannot be empty..
         /// </summary>
         public static string ID_EMPTY {
@@ -219,6 +228,15 @@ namespace DotCruz.CoreAuth.Domain.Exceptions.Resources {
         public static string UNKNOWN_ERROR {
             get {
                 return ResourceManager.GetString("UNKNOWN_ERROR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a An unknown error occurred in the Tenant API..
+        /// </summary>
+        public static string UNKNOWN_ERROR_TENANT {
+            get {
+                return ResourceManager.GetString("UNKNOWN_ERROR_TENANT", resourceCulture);
             }
         }
         

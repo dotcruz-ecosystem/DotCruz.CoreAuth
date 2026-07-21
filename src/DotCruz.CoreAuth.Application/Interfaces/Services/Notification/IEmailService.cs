@@ -1,4 +1,4 @@
-namespace DotCruz.CoreAuth.Application.Interfaces.Services;
+namespace DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
 
 public interface IEmailService
 {

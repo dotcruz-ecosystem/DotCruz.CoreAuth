@@ -1,4 +1,4 @@
-﻿using DotCruz.CoreAuth.Application.Interfaces.Services;
+﻿using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
 using Moq;
 
 namespace CommonTestUtilities.Services

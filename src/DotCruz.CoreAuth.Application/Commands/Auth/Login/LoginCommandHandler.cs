@@ -1,3 +1,4 @@
+using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
@@ -19,6 +20,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
         private readonly IRefreshTokenGenerator _refreshTokenGenerator;
         private readonly IRefreshTokenWriteRepository _refreshTokenWriteRepository;
         private readonly ITokenProvider _tokenProvider;
+        private readonly ITenantServiceClient _tenantServiceClient;
         private readonly IUnitOfWork _unitOfWork;
         private readonly JwtTokenSettings _jwtTokenSettings;
 
@@ -29,6 +31,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
             IRefreshTokenGenerator refreshTokenGenerator,
             IRefreshTokenWriteRepository refreshTokenWriteRepository,
             ITokenProvider tokenProvider,
+            ITenantServiceClient tenantServiceClient,
             IUnitOfWork unitOfWork,
             IOptions<JwtTokenSettings> jwtTokenSettings)
         {
@@ -38,6 +41,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
             _refreshTokenGenerator = refreshTokenGenerator;
             _refreshTokenWriteRepository = refreshTokenWriteRepository;
             _tokenProvider = tokenProvider;
+            _tenantServiceClient = tenantServiceClient;
             _unitOfWork = unitOfWork;
             _jwtTokenSettings = jwtTokenSettings.Value;
         }
@@ -54,7 +58,9 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
             if (!passwordMatch)
                 throw new InvalidLoginException();
 
-            var accessToken = _accessTokenGenerator.Generate(user);
+            var tenantSummary = await _tenantServiceClient.GetTenantSummaryAsync(user.TenantId, cancellationToken);
+
+            var accessToken = _accessTokenGenerator.Generate(user, tenantSummary?.Type, tenantSummary?.Plan);
             var refreshTokenString = _refreshTokenGenerator.Generate();
             var hashedRefreshToken = _tokenProvider.Hash(refreshTokenString);
 

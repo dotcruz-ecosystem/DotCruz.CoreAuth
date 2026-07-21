@@ -8,6 +8,7 @@ using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Tokens;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
 using Microsoft.Extensions.Options;
 using Moq;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
 
 namespace CommonTestUtilities.Commands.Auth;
 
@@ -18,6 +19,7 @@ public class RefreshTokenCommandHandlerBuilder
     private IAccessTokenGenerator _accessTokenGenerator = new Mock<IAccessTokenGenerator>().Object;
     private IRefreshTokenGenerator _refreshTokenGenerator = new Mock<IRefreshTokenGenerator>().Object;
     private ITokenProvider _tokenProvider = new TestTokenProvider();
+    private ITenantServiceClient _tenantServiceClient = new Mock<ITenantServiceClient>().Object;
     private IUnitOfWork _unitOfWork = UnitOfWorkBuilder.Build();
     private IOptions<JwtTokenSettings> _jwtTokenSettings = Options.Create(new JwtTokenSettings { RefreshTokenExpirationTimeDays = 7 });
 
@@ -51,6 +53,12 @@ public class RefreshTokenCommandHandlerBuilder
         return this;
     }
 
+    public RefreshTokenCommandHandlerBuilder SetTenantServiceClient(ITenantServiceClient tenantServiceClient)
+    {
+        _tenantServiceClient = tenantServiceClient;
+        return this;
+    }
+
     public RefreshTokenCommandHandlerBuilder SetUnitOfWork(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
@@ -71,6 +79,7 @@ public class RefreshTokenCommandHandlerBuilder
             _accessTokenGenerator,
             _refreshTokenGenerator,
             _tokenProvider,
+            _tenantServiceClient,
             _unitOfWork,
             _jwtTokenSettings
         );

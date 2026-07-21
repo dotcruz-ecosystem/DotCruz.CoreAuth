@@ -177,4 +177,10 @@
   <data name="JWKS_NOT_FOUND" xml:space="preserve">
     <value>JWKS configuration is incomplete.</value>
   </data>
+  <data name="UNKNOWN_ERROR_TENANT" xml:space="preserve">
+    <value>An unknown error occurred in the Tenant API.</value>
+  </data>
+  <data name="EXTERNAL_INTEGRATION_ERROR" xml:space="preserve">
+    <value>External integration error ({0}): {1}</value>
+  </data>
 </root>

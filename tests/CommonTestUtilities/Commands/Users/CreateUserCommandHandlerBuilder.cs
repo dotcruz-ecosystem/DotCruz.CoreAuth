@@ -3,11 +3,11 @@ using DotCruz.CoreAuth.Domain.Interfaces.Data;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Users;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Tokens;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
-using DotCruz.CoreAuth.Application.Interfaces.Services;
 using CommonTestUtilities.Data;
 using CommonTestUtilities.Repositories.Users;
 using CommonTestUtilities.Services;
 using Moq;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
 
 namespace CommonTestUtilities.Commands.Users;
 

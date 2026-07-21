@@ -2,7 +2,7 @@ using CommonTestUtilities.Commands.Users;
 using CommonTestUtilities.Entities.Users;
 using CommonTestUtilities.Repositories.Users;
 using CommonTestUtilities.Requests.Users;
-using DotCruz.CoreAuth.Application.Interfaces.Services;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
 using Moq;
 

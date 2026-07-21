@@ -1,4 +1,4 @@
-using DotCruz.CoreAuth.Application.Interfaces.Services;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
 using DotCruz.Notifications.Contracts.Enums.Notifications;
 using DotCruz.Notifications.Contracts.Messages.Notifications.CreateNotification;
 using Microsoft.Extensions.Configuration;

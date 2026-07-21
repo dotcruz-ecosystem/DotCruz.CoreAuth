@@ -17,7 +17,6 @@ builder.Services.AddCommonConfiguration(builder.Configuration);
 builder.Services.AddSharedSecurity(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthTokenProvider, HttpContextTokenValue>();
-builder.Services.AddScoped<ITenantProvider, HttpContextTenantValue>();
 
 builder.Services.AddApiConventions();
 builder.Services.AddOpenApiDocumentation();

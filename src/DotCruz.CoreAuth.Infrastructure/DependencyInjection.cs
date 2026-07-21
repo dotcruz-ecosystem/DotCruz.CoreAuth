@@ -1,4 +1,5 @@
-using DotCruz.CoreAuth.Application.Interfaces.Services;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Interfaces.Data;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Base;
@@ -18,7 +19,7 @@ using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Jwks;
 using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Refresh;
 using DotCruz.CoreAuth.Infrastructure.Services.LoggedUser;
 using DotCruz.CoreAuth.Infrastructure.Services.Notification;
-using DotCruz.CoreAuth.Infrastructure.Services.TenantResolver;
+using DotCruz.CoreAuth.Infrastructure.Services.Tenants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -82,9 +83,15 @@ public static class DependencyInjection
             })
             .AddServiceApiKeyPropagation();
 
+            services.AddHttpClient<ITenantServiceClient, TenantServiceClient>(client =>
+            {
+                var tenantsBaseUrl = configuration.GetValue<string>("Settings:Tenant:BaseUrl");
+                client.BaseAddress = new Uri(tenantsBaseUrl);
+            })
+            .AddServiceApiKeyPropagation();
+
             services.AddScoped<ILoggedUser, LoggedUser>();
-            services.AddScoped<ITenantResolver, TenantResolver>();
-    }
+        }
 
         private static void AddDbContext(IServiceCollection services, IConfiguration configuration)
         {
