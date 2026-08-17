@@ -11,17 +11,20 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.PasswordResetTokens.ResetPa
     public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand>
     {
         private readonly IPasswordResetTokenReadRepository _tokenReadRepository;
+        private readonly IRefreshTokenReadRepository _refreshTokenReadRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly ITokenProvider _tokenProvider;
         private readonly IUnitOfWork _unitOfWork;
 
         public ResetPasswordCommandHandler(
             IPasswordResetTokenReadRepository tokenReadRepository,
+            IRefreshTokenReadRepository refreshTokenReadRepository,
             IPasswordHasher passwordHasher,
             ITokenProvider tokenProvider,
             IUnitOfWork unitOfWork)
         {
             _tokenReadRepository = tokenReadRepository;
+            _refreshTokenReadRepository = refreshTokenReadRepository;
             _passwordHasher = passwordHasher;
             _tokenProvider = tokenProvider;
             _unitOfWork = unitOfWork;
@@ -39,6 +42,12 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.PasswordResetTokens.ResetPa
 
             token.User.Update(null, null, newPasswordHash, null);
             token.MarkAsUsed();
+
+            var activeRefreshTokens = await _refreshTokenReadRepository
+                .GetActiveTokensByUserIdAsync(token.UserId, cancellationToken);
+
+            foreach (var refreshToken in activeRefreshTokens ?? [])
+                refreshToken.Revoke();
 
             await _unitOfWork.CommitAsync(cancellationToken);
         }
