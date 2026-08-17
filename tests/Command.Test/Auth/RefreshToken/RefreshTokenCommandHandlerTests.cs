@@ -180,4 +180,36 @@ public class RefreshTokenCommandHandlerTests
         var exception = await Assert.ThrowsAsync<ErrorOnValidationException>(act);
         exception.GetErrorsMessages().Should().Contain(ResourceMessagesException.USER_NOT_FOUND);
     }
+
+    [Fact]
+    public async Task Error_Reused_Token_Revokes_The_Whole_Chain()
+    {
+        var user = UserBuilder.Build(status: UserStatus.Active);
+        var command = RefreshTokenCommandBuilder.Build();
+        var hashedToken = _tokenProvider.Hash(command.RefreshToken);
+
+        var reusedToken = RefreshTokenBuilder.Build(token: hashedToken, userId: user.Id);
+        reusedToken.Revoke();
+
+        var siblingA = RefreshTokenBuilder.Build(userId: user.Id);
+        var siblingB = RefreshTokenBuilder.Build(userId: user.Id);
+
+        var readRepository = new RefreshTokenReadRepositoryBuilder()
+            .SetupGetByToken(hashedToken, reusedToken)
+            .SetupGetActiveTokensByUserId(user.Id, [siblingA, siblingB])
+            .Build();
+
+        var handler = new RefreshTokenCommandHandlerBuilder()
+            .SetRefreshTokenReadRepository(readRepository)
+            .SetTokenProvider(_tokenProvider)
+            .Build();
+
+        Task act() => handler.Handle(command, TestContext.Current.CancellationToken);
+
+        var exception = await Assert.ThrowsAsync<ErrorOnValidationException>(act);
+
+        exception.GetErrorsMessages().Should().Contain(ResourceMessagesException.TOKEN_INVALID);
+        siblingA.IsRevoked.Should().BeTrue();
+        siblingB.IsRevoked.Should().BeTrue();
+    }
 }

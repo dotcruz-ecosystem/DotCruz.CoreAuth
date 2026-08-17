@@ -7,6 +7,7 @@ using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
 using DotCruz.CoreAuth.Domain.Exceptions.Resources;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
 using Moq;
+using DotCruz.CoreAuth.Domain.Entities.Tokens;
 
 namespace Command.Test.Auth.PasswordResetTokens.ResetPassword
 {
@@ -62,6 +63,41 @@ namespace Command.Test.Auth.PasswordResetTokens.ResetPassword
             var exception = await Assert.ThrowsAsync<NotFoundException>(act);
 
             Assert.Equal(ResourceMessagesException.TOKEN_INVALID, exception.Message);
+        }
+    
+
+        [Fact]
+        public async Task Success_Revokes_Active_Refresh_Tokens()
+        {
+            var command = ResetPasswordCommandBuilder.Build();
+            var user = UserBuilder.Build();
+            var resetToken = PasswordResetTokenBuilder.Build(token: "hashed-token", userId: user.Id);
+            typeof(PasswordResetToken).GetProperty(nameof(PasswordResetToken.User))?.SetValue(resetToken, user);
+
+            var sessionA = RefreshTokenBuilder.Build(userId: user.Id);
+            var sessionB = RefreshTokenBuilder.Build(userId: user.Id);
+
+            var tokenReadRepository = new PasswordResetTokenReadRepositoryBuilder()
+                .SetupGetByToken("hashed-token", resetToken)
+                .Build();
+
+            var refreshTokenReadRepository = new RefreshTokenReadRepositoryBuilder()
+                .SetupGetActiveTokensByUserId(user.Id, [sessionA, sessionB])
+                .Build();
+
+            var tokenProvider = new Mock<ITokenProvider>();
+            tokenProvider.Setup(t => t.Hash(command.Token)).Returns("hashed-token");
+
+            var handler = new ResetPasswordCommandHandlerBuilder()
+                .SetTokenReadRepository(tokenReadRepository)
+                .SetRefreshTokenReadRepository(refreshTokenReadRepository)
+                .SetTokenProvider(tokenProvider.Object)
+                .Build();
+
+            await handler.Handle(command, TestContext.Current.CancellationToken);
+
+            Assert.True(sessionA.IsRevoked);
+            Assert.True(sessionB.IsRevoked);
         }
     }
 }

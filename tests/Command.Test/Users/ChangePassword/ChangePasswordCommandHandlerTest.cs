@@ -1,3 +1,4 @@
+using CommonTestUtilities.Entities.Tokens;
 using CommonTestUtilities.Entities.Users;
 using CommonTestUtilities.Repositories.Users;
 using DotCruz.CoreAuth.Application.Commands.Users.ChangePassword;
@@ -10,6 +11,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using CommonTestUtilities.Repositories.Tokens;
 
 namespace Command.Test.Users.ChangePassword;
 
@@ -40,6 +42,7 @@ public class ChangePasswordCommandHandlerTest
 
         var handler = new ChangePasswordCommandHandler(
             userWriteRepository,
+            new RefreshTokenReadRepositoryBuilder().Build(),
             loggedUserMock.Object,
             passwordHasherMock.Object,
             unitOfWorkMock.Object
@@ -71,6 +74,7 @@ public class ChangePasswordCommandHandlerTest
 
         var handler = new ChangePasswordCommandHandler(
             userWriteRepository,
+            new RefreshTokenReadRepositoryBuilder().Build(),
             loggedUserMock.Object,
             passwordHasherMock.Object,
             unitOfWorkMock.Object
@@ -106,6 +110,7 @@ public class ChangePasswordCommandHandlerTest
 
         var handler = new ChangePasswordCommandHandler(
             userWriteRepository,
+            new RefreshTokenReadRepositoryBuilder().Build(),
             loggedUserMock.Object,
             passwordHasherMock.Object,
             unitOfWorkMock.Object
@@ -116,5 +121,49 @@ public class ChangePasswordCommandHandlerTest
         Func<Task> act = () => handler.Handle(command, CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidLoginException>();
+    }
+
+    [Fact]
+    public async Task Success_Revokes_Active_Refresh_Tokens()
+    {
+        var user = UserBuilder.Build(passwordHashed: "old-hash");
+        var userWriteRepository = new UserWriteRepositoryBuilder()
+            .SetupGetByIdToUpdate(user)
+            .Build();
+
+        var loggedUserMock = new Mock<ILoggedUser>();
+        loggedUserMock
+            .Setup(x => x.User(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        var passwordHasherMock = new Mock<IPasswordHasher>();
+        passwordHasherMock
+            .Setup(x => x.VerifyPassword("current-pass", "old-hash"))
+            .Returns(true);
+        passwordHasherMock
+            .Setup(x => x.HashPassword("new-pass"))
+            .Returns("new-hash");
+
+        var sessionA = RefreshTokenBuilder.Build(userId: user.Id);
+        var sessionB = RefreshTokenBuilder.Build(userId: user.Id);
+
+        var refreshTokenReadRepository = new RefreshTokenReadRepositoryBuilder()
+            .SetupGetActiveTokensByUserId(user.Id, [sessionA, sessionB])
+            .Build();
+
+        var unitOfWorkMock = new Mock<DotCruz.CoreAuth.Domain.Interfaces.Data.IUnitOfWork>();
+
+        var handler = new ChangePasswordCommandHandler(
+            userWriteRepository,
+            refreshTokenReadRepository,
+            loggedUserMock.Object,
+            passwordHasherMock.Object,
+            unitOfWorkMock.Object
+        );
+
+        await handler.Handle(new ChangePasswordCommand("current-pass", "new-pass"), TestContext.Current.CancellationToken);
+
+        sessionA.IsRevoked.Should().BeTrue();
+        sessionB.IsRevoked.Should().BeTrue();
     }
 }
