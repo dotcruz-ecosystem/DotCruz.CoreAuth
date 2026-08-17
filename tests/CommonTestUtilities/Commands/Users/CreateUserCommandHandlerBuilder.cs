@@ -3,8 +3,10 @@ using DotCruz.CoreAuth.Domain.Interfaces.Data;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Users;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Tokens;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
+using DotCruz.Shared.Security.Context;
 using CommonTestUtilities.Data;
 using CommonTestUtilities.Repositories.Users;
+using CommonTestUtilities.Security;
 using CommonTestUtilities.Services;
 using Moq;
 using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
@@ -19,6 +21,13 @@ public class CreateUserCommandHandlerBuilder
     private IEmailService _emailService = EmailServiceBuilder.Build();
     private ITokenProvider _tokenProvider = new Mock<ITokenProvider>().Object;
     private IActivationTokenWriteRepository _activationTokenWriteRepository = new Mock<IActivationTokenWriteRepository>().Object;
+    private ISecurityContext _securityContext = new SecurityContextBuilder().Build();
+
+    public CreateUserCommandHandlerBuilder SetSecurityContext(ISecurityContext securityContext)
+    {
+        _securityContext = securityContext;
+        return this;
+    }
 
     public CreateUserCommandHandlerBuilder SetUserReadRepository(IUserReadRepository userReadRepository)
     {
@@ -58,7 +67,8 @@ public class CreateUserCommandHandlerBuilder
             _unitOfWork,
             _emailService,
             _tokenProvider,
-            _activationTokenWriteRepository
+            _activationTokenWriteRepository,
+            _securityContext
         );
     }
 }

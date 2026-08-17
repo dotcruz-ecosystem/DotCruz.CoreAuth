@@ -8,6 +8,7 @@ using DotCruz.CoreAuth.Domain.Interfaces.Data;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Tokens;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Users;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
+using DotCruz.Shared.Security.Context;
 using MediatR;
 
 namespace DotCruz.CoreAuth.Application.Commands.Users.CreateUser;
@@ -19,6 +20,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
     private readonly IActivationTokenWriteRepository _activationTokenWriteRepository;
     private readonly ITokenProvider _tokenProvider;
     private readonly IEmailService _emailService;
+    private readonly ISecurityContext _securityContext;
     private readonly IUnitOfWork _unitOfWork;
 
     public CreateUserCommandHandler(
@@ -27,7 +29,8 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
         IUnitOfWork unitOfWork,
         IEmailService emailService,
         ITokenProvider tokenProvider,
-        IActivationTokenWriteRepository activationTokenWriteRepository
+        IActivationTokenWriteRepository activationTokenWriteRepository,
+        ISecurityContext securityContext
     )
     {
         _userWriteRepository = userWriteRepository;
@@ -35,12 +38,15 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
         _activationTokenWriteRepository = activationTokenWriteRepository;
         _tokenProvider = tokenProvider;
         _emailService = emailService;
+        _securityContext = securityContext;
         _unitOfWork = unitOfWork;
     }
 
 
     public async Task<Guid> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
+        request = ApplyCallerRestrictions(request);
+
         await ValidateEmailExists(request.Email, cancellationToken);
 
         var user = await CreateUser(request, cancellationToken);
@@ -53,6 +59,28 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
 
         return user.Id;
     }
+
+    private CreateUserCommand ApplyCallerRestrictions(CreateUserCommand request)
+    {
+        if (_securityContext.IsAuthenticatedService || CallerIsInRole(UserType.SuperAdmin))
+            return request;
+
+        if (!CallerIsInRole(UserType.TenantAdmin))
+            throw new ForbiddenException(ResourceMessagesException.USER_WITHOUT_PERMISSION_ACCESS_RESOURCE);
+
+        if (request.Type is not (UserType.TenantAdmin or UserType.TenantUser))
+            throw new ForbiddenException(ResourceMessagesException.USER_WITHOUT_PERMISSION_ACCESS_RESOURCE);
+
+        var callerTenantId = _securityContext.TenantId ?? Guid.Empty;
+
+        if (callerTenantId == Guid.Empty)
+            throw new ForbiddenException(ResourceMessagesException.TENANT_ID_REQUIRED);
+
+        return request with { TenantId = callerTenantId };
+    }
+
+    private bool CallerIsInRole(UserType type) =>
+        _securityContext.Roles.Contains(type.ToString(), StringComparer.OrdinalIgnoreCase);
 
     private async Task ValidateEmailExists(string email, CancellationToken cancellationToken)
     {
