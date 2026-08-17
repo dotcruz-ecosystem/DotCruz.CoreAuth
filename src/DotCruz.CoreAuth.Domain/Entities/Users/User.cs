@@ -14,6 +14,11 @@ public class User : TenantEntity
     public UserType Type { get; private set; }
     public UserStatus Status { get; private set; }
 
+    public bool CanAuthenticate =>
+        Status == UserStatus.Active
+        && DeletedAt is null
+        && !string.IsNullOrEmpty(PasswordHash);
+
     public IEnumerable<PasswordResetToken> PasswordResetTokens { get; private set; } = new List<PasswordResetToken>();
     public IEnumerable<RefreshToken> RefreshTokens { get; private set; } = new List<RefreshToken>();
 
