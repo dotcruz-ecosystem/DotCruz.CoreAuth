@@ -6,9 +6,11 @@ using DotCruz.CoreAuth.Domain.Entities.Users;
 using DotCruz.CoreAuth.Domain.Enums.Users;
 using DotCruz.Shared.Security.Context;
 using DotCruz.CoreAuth.Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Moq;
 using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
 using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
@@ -33,10 +35,17 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     private PasswordResetToken _passwordResetToken = default!;
     private string _passwordResetTokenValue = string.Empty;
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    private static readonly string SigningKeyPem = CreateSigningKeyPem();
+
+    private static string CreateSigningKeyPem()
     {
         using var rsa = System.Security.Cryptography.RSA.Create(2048);
-        var privateKeyPem = rsa.ExportPkcs8PrivateKeyPem();
+        return rsa.ExportPkcs8PrivateKeyPem();
+    }
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        var privateKeyPem = SigningKeyPem;
 
         Environment.SetEnvironmentVariable("Settings__Jwt__Issuer", "test-issuer");
         Environment.SetEnvironmentVariable("Settings__Jwt__Audience", "test-audience");
@@ -77,6 +86,31 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 });
 
                 services.AddHttpContextAccessor();
+
+                // O host de teste não consegue alcançar o endpoint JWKS por URL
+                // absoluta, então a validação de assinatura usa direto a chave RSA
+                // gerada acima. Sem isto, o FallbackPolicy recusaria todo token e os
+                // testes de endpoint autenticado passariam a receber 401.
+                services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+                {
+                    var validationRsa = System.Security.Cryptography.RSA.Create();
+                    validationRsa.ImportFromPem(SigningKeyPem);
+
+                    var signingKey = new RsaSecurityKey(validationRsa) { KeyId = "test-kid" };
+
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = "test-issuer",
+                        ValidateAudience = true,
+                        ValidAudience = "test-audience",
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = signingKey,
+                        IssuerSigningKeyResolver = (_, _, _, _) => [signingKey]
+                    };
+                });
 
                 var tenantDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(ITenantProvider));
                 if (tenantDescriptor is not null)
@@ -147,6 +181,25 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     public string GetSuperAdminEmail() => _superAdminUser.Email;
     public string GetSuperAdminPassword() => _superAdminPassword;
+
+    public string GetSuperAdminAccessToken() => GenerateAccessToken(_superAdminUser);
+
+    public string GetTenantUserAccessToken() => GenerateAccessToken(_user);
+
+    public string GenerateSuperAdminTokenForOtherTenant()
+    {
+        var foreignUser = UserBuilder.Build(
+            name: "Foreign Admin",
+            email: $"foreign-{Guid.NewGuid():N}@example.com",
+            passwordHashed: "irrelevant-for-token-generation",
+            tenantId: Guid.NewGuid(),
+            status: UserStatus.Active
+        );
+
+        foreignUser.Update(name: null, email: null, passwordHash: null, type: UserType.SuperAdmin, tenantId: foreignUser.TenantId);
+
+        return GenerateAccessToken(foreignUser);
+    }
 
     private void StartDatabase(CoreAuthDbContext dbContext)
     {
