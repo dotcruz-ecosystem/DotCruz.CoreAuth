@@ -50,6 +50,14 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var hashedToken = _tokenProvider.Hash(request.RefreshToken);
         var refreshToken = await _refreshTokenReadRepository.GetByTokenAsync(hashedToken, cancellationToken);
 
+        if (refreshToken is not null && refreshToken.IsRevoked)
+        {
+            await RevokeAllActiveTokens(refreshToken.UserId, cancellationToken);
+            await _unitOfWork.CommitAsync(cancellationToken);
+
+            throw new ErrorOnValidationException(ResourceMessagesException.TOKEN_INVALID);
+        }
+
         ValidateToken(refreshToken);
 
         refreshToken!.Revoke();
@@ -77,6 +85,14 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         if (errors.Count > 0)
             throw new ErrorOnValidationException(errors);
+    }
+
+    private async Task RevokeAllActiveTokens(Guid userId, CancellationToken cancellationToken)
+    {
+        var activeTokens = await _refreshTokenReadRepository.GetActiveTokensByUserIdAsync(userId, cancellationToken);
+
+        foreach (var activeToken in activeTokens ?? [])
+            activeToken.Revoke();
     }
 
     private async Task<string> CreateNewRefreshToken(Guid userId, CancellationToken cancellationToken)
