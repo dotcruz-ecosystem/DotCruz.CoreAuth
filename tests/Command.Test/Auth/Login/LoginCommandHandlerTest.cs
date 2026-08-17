@@ -3,6 +3,9 @@ using CommonTestUtilities.Entities.Users;
 using CommonTestUtilities.Repositories.Users;
 using CommonTestUtilities.Requests.Users;
 using CommonTestUtilities.Security;
+using DotCruz.CoreAuth.Application.Commands.Auth.Login;
+using DotCruz.CoreAuth.Domain.Entities.Users;
+using DotCruz.CoreAuth.Domain.Enums.Users;
 using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
 using DotCruz.CoreAuth.Domain.Exceptions.Resources;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
@@ -70,6 +73,46 @@ namespace Command.Test.Auth.Login
         }
 
         [Fact]
+        public async Task Error_Deactivated_User()
+        {
+            var command = LoginCommandBuilder.Build();
+            var user = UserBuilder.Build(email: command.Email);
+            user.Delete();
+
+            Task act() => BuildHandlerWithValidPassword(user).Handle(command, TestContext.Current.CancellationToken);
+
+            var exception = await Assert.ThrowsAsync<InvalidLoginException>(act);
+
+            Assert.Contains(ResourceMessagesException.EMAIL_OR_PASSWORD_INVALID, exception.GetErrorsMessages());
+        }
+
+        [Fact]
+        public async Task Error_Pending_Activation_User()
+        {
+            var command = LoginCommandBuilder.Build();
+            var user = UserBuilder.Build(email: command.Email, status: UserStatus.PendingActivation);
+
+            Task act() => BuildHandlerWithValidPassword(user).Handle(command, TestContext.Current.CancellationToken);
+
+            var exception = await Assert.ThrowsAsync<InvalidLoginException>(act);
+
+            Assert.Contains(ResourceMessagesException.EMAIL_OR_PASSWORD_INVALID, exception.GetErrorsMessages());
+        }
+
+        [Fact]
+        public async Task Error_Blocked_User()
+        {
+            var command = LoginCommandBuilder.Build();
+            var user = UserBuilder.Build(email: command.Email, status: UserStatus.Blocked);
+
+            Task act() => BuildHandlerWithValidPassword(user).Handle(command, TestContext.Current.CancellationToken);
+
+            var exception = await Assert.ThrowsAsync<InvalidLoginException>(act);
+
+            Assert.Contains(ResourceMessagesException.EMAIL_OR_PASSWORD_INVALID, exception.GetErrorsMessages());
+        }
+
+        [Fact]
         public async Task Error_Invalid_Password()
         {
             var command = LoginCommandBuilder.Build();
@@ -93,6 +136,22 @@ namespace Command.Test.Auth.Login
             var exception = await Assert.ThrowsAsync<InvalidLoginException>(act);
 
             Assert.Contains(ResourceMessagesException.EMAIL_OR_PASSWORD_INVALID, exception.GetErrorsMessages());
+        }
+
+        private static LoginCommandHandler BuildHandlerWithValidPassword(User user)
+        {
+            var userReadRepository = new UserReadRepositoryBuilder()
+                .SetupGetUserByEmail(user)
+                .Build();
+
+            var passwordHasher = new PasswordHasherBuilder()
+                .SetupVerifyPassword(true)
+                .Build();
+
+            return new LoginCommandHandlerBuilder()
+                .SetUserReadRepository(userReadRepository)
+                .SetPasswordHasher(passwordHasher)
+                .Build();
         }
     }
 }

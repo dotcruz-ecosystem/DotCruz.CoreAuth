@@ -174,4 +174,38 @@ public class UserTest
 
         user.TenantId.Should().Be(Guid.Empty);
     }
+
+    [Fact]
+    public void CanAuthenticate_True_For_Active_User_With_Password()
+    {
+        var user = UserBuilder.Build(status: UserStatus.Active);
+
+        user.CanAuthenticate.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CanAuthenticate_False_For_Pending_Activation()
+    {
+        var user = UserBuilder.Build(status: UserStatus.PendingActivation);
+
+        user.CanAuthenticate.Should().BeFalse();
+    }
+
+    [Fact]
+    public void CanAuthenticate_False_For_Blocked()
+    {
+        var user = UserBuilder.Build(status: UserStatus.Blocked);
+
+        user.CanAuthenticate.Should().BeFalse();
+    }
+
+    [Fact]
+    public void CanAuthenticate_False_After_Delete()
+    {
+        var user = UserBuilder.Build(status: UserStatus.Active);
+
+        user.Delete();
+
+        user.CanAuthenticate.Should().BeFalse();
+    }
 }
