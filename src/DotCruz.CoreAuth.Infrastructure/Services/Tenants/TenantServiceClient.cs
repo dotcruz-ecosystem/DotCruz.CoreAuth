@@ -11,7 +11,7 @@ namespace DotCruz.CoreAuth.Infrastructure.Services.Tenants;
 
 public class TenantServiceClient : ITenantServiceClient
 {
-    private const string TENANT_SUMMARY_ENDPOINT = "api/v1/tenants/{0}/summary";
+    private const string TENANT_SUMMARY_ENDPOINT = "api/tenants/{0}/summary";
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<TenantServiceClient> _logger;
