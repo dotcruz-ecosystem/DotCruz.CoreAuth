@@ -15,6 +15,7 @@ public class GetUserByIdTest : DotCruzCoreAuthClassFixture
     private readonly Guid _userId;
     private readonly string _email;
     private readonly string _name;
+    private readonly string _token;
     private readonly Guid _tenantId;
 
     public GetUserByIdTest(CustomWebApplicationFactory factory) : base(factory)
@@ -22,13 +23,14 @@ public class GetUserByIdTest : DotCruzCoreAuthClassFixture
         _userId = factory.GetUserId();
         _email = factory.GetEmail();
         _name = factory.GetName();
+        _token = factory.GetTenantUserAccessToken();
         _tenantId = factory.GetTenantId().GetValueOrDefault();
     }
 
     [Fact]
     public async Task Success()
     {
-        var response = await DoGet(method: $"{METHOD}/{_userId}", tenantId: _tenantId.ToString());
+        var response = await DoGet(token: _token, method: $"{METHOD}/{_userId}", tenantId: _tenantId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -46,7 +48,7 @@ public class GetUserByIdTest : DotCruzCoreAuthClassFixture
     {
         var nonExistentId = Guid.NewGuid();
 
-        var response = await DoGet(method: $"{METHOD}/{nonExistentId}", culture: culture);
+        var response = await DoGet(token: _token, method: $"{METHOD}/{nonExistentId}", culture: culture);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 

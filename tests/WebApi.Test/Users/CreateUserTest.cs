@@ -15,11 +15,13 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
     private readonly string METHOD = "api/users";
 
     private readonly string _email;
+    private readonly string _token;
     private readonly string _tenantId;
 
     public CreateUserTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _email = factory.GetEmail();
+        _token = factory.GetSuperAdminAccessToken();
         _tenantId = factory.GetTenantId().ToString()!;
     }
 
@@ -28,7 +30,7 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
     {
         var command = CreateUserCommandBuilder.Build();
 
-        var response = await DoPost(method: METHOD, request: command);
+        var response = await DoPost(token: _token, method: METHOD, request: command);
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
@@ -37,7 +39,7 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
 
         createdId.Should().NotBeEmpty();
 
-        var getResponse = await DoGet(method: $"api/users/{createdId}", tenantId: command.TenantId.ToString());
+        var getResponse = await DoGet(token: _token, method: $"api/users/{createdId}", tenantId: command.TenantId.ToString());
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var getResponseBody = await getResponse.Content.ReadAsStringAsync();
@@ -52,7 +54,7 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
     {
         var command = CreateUserCommandBuilder.Build() with { Name = string.Empty };
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(token: _token, method: METHOD, request: command, culture: culture);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -69,7 +71,7 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
     {
         var command = CreateUserCommandBuilder.Build() with { Email = string.Empty };
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(token: _token, method: METHOD, request: command, culture: culture);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -86,7 +88,7 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
     {
         var command = CreateUserCommandBuilder.Build() with { Email = "invalid-email" };
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture);
+        var response = await DoPost(token: _token, method: METHOD, request: command, culture: culture);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -103,7 +105,7 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
     {
         var command = CreateUserCommandBuilder.Build() with { Email = _email };
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
+        var response = await DoPost(token: _token, method: METHOD, request: command, culture: culture, tenantId: _tenantId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 

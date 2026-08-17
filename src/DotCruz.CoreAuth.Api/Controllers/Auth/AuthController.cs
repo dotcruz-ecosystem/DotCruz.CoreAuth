@@ -7,6 +7,7 @@ using DotCruz.CoreAuth.Application.Commands.Auth.RefreshTokens;
 using DotCruz.CoreAuth.Application.Commands.Auth.RevokeAllUserTokens;
 using DotCruz.CoreAuth.Application.DTOs.Base;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotCruz.CoreAuth.Api.Controllers.Auth;
@@ -14,6 +15,7 @@ namespace DotCruz.CoreAuth.Api.Controllers.Auth;
 public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(mediator)
 {
     [HttpPost]
+    [AllowAnonymous]
     [Route("login")]
     [ProducesResponseType(typeof(ResponseLoginDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status401Unauthorized)]
@@ -24,6 +26,7 @@ public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [Route("activate")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
@@ -34,6 +37,7 @@ public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [Route("refresh-token")]
     [ProducesResponseType(typeof(ResponseTokensDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
@@ -44,6 +48,7 @@ public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [Route("password-reset/request")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
@@ -54,6 +59,7 @@ public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [Route("password-reset/reset")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]

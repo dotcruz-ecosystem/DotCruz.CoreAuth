@@ -8,7 +8,9 @@ using DotCruz.CoreAuth.Application.Queries;
 using DotCruz.CoreAuth.Application.Queries.Users;
 using DotCruz.CoreAuth.Application.Queries.Users.GetUserById;
 using DotCruz.CoreAuth.Application.Queries.Users.GetUsers;
+using DotCruz.Shared.Security.Authorization;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotCruz.CoreAuth.Api.Controllers.Users;
@@ -16,7 +18,9 @@ namespace DotCruz.CoreAuth.Api.Controllers.Users;
 public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController(mediator)
 {
     [HttpPost]
+    [Authorize(Policy = SecurityPolicies.UserOrService)]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateUserCommand command, CancellationToken cancellationToken)
     {
@@ -26,6 +30,7 @@ public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController
 
     [HttpGet]
     [Route("{Id}")]
+    [Authorize(Policy = SecurityPolicies.UserOrService)]
     [ProducesResponseType(typeof(ResponseUserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById([FromRoute] Guid Id, CancellationToken cancellationToken)
@@ -36,7 +41,9 @@ public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController
     }
 
     [HttpGet]
+    [Authorize(Policy = SecurityPolicies.TenantAdminOrAdmin)]
     [ProducesResponseType(typeof(PagedResultDto<ResponseUserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
         var query = new GetUsersQuery(pageNumber, pageSize);
@@ -46,6 +53,7 @@ public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController
 
     [HttpPut]
     [Route("{Id}")]
+    [Authorize(Policy = SecurityPolicies.TenantAdminOrAdmin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
@@ -69,6 +77,7 @@ public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController
     }
 
     [HttpDelete("{Id}")]
+    [Authorize(Policy = SecurityPolicies.TenantAdminOrAdmin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Deactivate([FromRoute] Guid Id, CancellationToken cancellationToken)

@@ -10,16 +10,18 @@ public class GetUsersPagedTest : DotCruzCoreAuthClassFixture
     private readonly string METHOD = "api/users";
 
     private readonly Guid _tenantId;
+    private readonly string _token;
 
     public GetUsersPagedTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _tenantId = factory.GetTenantId().GetValueOrDefault();
+        _token = factory.GetSuperAdminAccessToken();
     }
 
     [Fact]
     public async Task Success()
     {
-        var response = await DoGet(method: $"{METHOD}?page_number=1&page_size=10", tenantId: _tenantId.ToString());
+        var response = await DoGet(token: _token, method: $"{METHOD}?page_number=1&page_size=10", tenantId: _tenantId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 

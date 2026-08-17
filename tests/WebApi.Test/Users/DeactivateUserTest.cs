@@ -13,22 +13,24 @@ public class DeactivateUserTest : DotCruzCoreAuthClassFixture
     private readonly string METHOD = "api/users";
 
     private readonly Guid _userId;
+    private readonly string _token;
     private readonly Guid _tenantId;
 
     public DeactivateUserTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _userId = factory.GetUserId();
+        _token = factory.GetSuperAdminAccessToken();
         _tenantId = factory.GetTenantId().GetValueOrDefault();
     }
 
     [Fact]
     public async Task Success()
     {
-        var response = await DoDelete(method: $"{METHOD}/{_userId}", tenantId: _tenantId.ToString());
+        var response = await DoDelete(token: _token, method: $"{METHOD}/{_userId}", tenantId: _tenantId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var getResponse = await DoGet(method: $"{METHOD}/{_userId}", tenantId: _tenantId.ToString());
+        var getResponse = await DoGet(token: _token, method: $"{METHOD}/{_userId}", tenantId: _tenantId.ToString());
         getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -38,7 +40,7 @@ public class DeactivateUserTest : DotCruzCoreAuthClassFixture
     {
         var nonExistentId = Guid.NewGuid();
 
-        var response = await DoDelete(method: $"{METHOD}/{nonExistentId}", culture: culture);
+        var response = await DoDelete(token: _token, method: $"{METHOD}/{nonExistentId}", culture: culture);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 

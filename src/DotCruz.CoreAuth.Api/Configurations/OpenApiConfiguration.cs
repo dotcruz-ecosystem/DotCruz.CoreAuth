@@ -72,13 +72,13 @@ public static class OpenApiConfiguration
     {
         if (app.Environment.IsDevelopment())
         {
-            app.MapOpenApi();
+            app.MapOpenApi().AllowAnonymous();
             app.MapScalarApiReference(options =>
             {
                 options.WithTitle("DotCruz.CoreAuth API Documentation")
                        .WithTheme(ScalarTheme.DeepSpace)
                        .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
-            });
+            }).AllowAnonymous();
         }
 
         return app;

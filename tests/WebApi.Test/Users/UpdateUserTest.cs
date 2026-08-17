@@ -19,6 +19,9 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
     private readonly string _name;
     private readonly Guid? _tenantId;
     private readonly string _otherEmail;
+    private readonly string _token;
+    private readonly string _tenantUserToken;
+    private readonly string _foreignTenantToken;
 
     public UpdateUserTest(CustomWebApplicationFactory factory) : base(factory)
     {
@@ -27,6 +30,9 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
         _name = factory.GetName();
         _tenantId = factory.GetTenantId();
         _otherEmail = factory.GetPendingUserEmail();
+        _token = factory.GetSuperAdminAccessToken();
+        _tenantUserToken = factory.GetTenantUserAccessToken();
+        _foreignTenantToken = factory.GenerateSuperAdminTokenForOtherTenant();
     }
 
     [Fact]
@@ -34,7 +40,7 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
     {
         var request = UpdateUserCommandBuilder.Build().Request with { Name = "Updated Name", Email = "updatedemail@example.com" };
 
-        var response = await DoPut(
+        var response = await DoPut(token: _token, 
             method: $"{METHOD}/{_userId}", 
             request: request, 
             tenantId: _tenantId?.ToString() ?? string.Empty
@@ -42,7 +48,7 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var getResponse = await DoGet(
+        var getResponse = await DoGet(token: _token, 
             method: $"{METHOD}/{_userId}", 
             tenantId: _tenantId?.ToString() ?? string.Empty
         );
@@ -59,14 +65,33 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
     {
         var request = UpdateUserCommandBuilder.Build().Request with { Name = "Updated Name", Email = "updatedemail@example.com" };
 
-        var mismatchedTenantId = Guid.NewGuid().ToString();
         var response = await DoPut(
-            method: $"{METHOD}/{_userId}", 
-            request: request, 
-            tenantId: mismatchedTenantId
+            token: _foreignTenantToken,
+            method: $"{METHOD}/{_userId}",
+            request: request
         );
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Error_Unauthenticated()
+    {
+        var request = UpdateUserCommandBuilder.Build().Request with { Name = "Updated Name", Email = "updatedemail@example.com" };
+
+        var response = await DoPut(method: $"{METHOD}/{_userId}", request: request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Error_Forbidden_For_Tenant_User()
+    {
+        var request = UpdateUserCommandBuilder.Build().Request with { Name = "Updated Name", Email = "updatedemail@example.com" };
+
+        var response = await DoPut(token: _tenantUserToken, method: $"{METHOD}/{_userId}", request: request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Theory]
@@ -75,7 +100,7 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
     {
         var request = UpdateUserCommandBuilder.Build().Request with { Name = string.Empty, Email = _email };
 
-        var response = await DoPut(
+        var response = await DoPut(token: _token, 
             method: $"{METHOD}/{_userId}", 
             request: request, 
             culture: culture,
@@ -97,7 +122,7 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
     {
         var request = UpdateUserCommandBuilder.Build().Request with { Name = _name, Email = string.Empty };
 
-        var response = await DoPut(
+        var response = await DoPut(token: _token, 
             method: $"{METHOD}/{_userId}", 
             request: request, 
             culture: culture,
@@ -119,7 +144,7 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
     {
         var request = UpdateUserCommandBuilder.Build().Request with { Name = _name, Email = "invalid-email-format" };
 
-        var response = await DoPut(
+        var response = await DoPut(token: _token, 
             method: $"{METHOD}/{_userId}", 
             request: request, 
             culture: culture,
@@ -141,7 +166,7 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
     {
         var request = UpdateUserCommandBuilder.Build().Request with { Name = _name, Email = _otherEmail };
 
-        var response = await DoPut(
+        var response = await DoPut(token: _token, 
             method: $"{METHOD}/{_userId}", 
             request: request, 
             culture: culture,
