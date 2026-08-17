@@ -72,7 +72,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         if (refreshToken == null || !refreshToken.IsActive)
             errors.Add(ResourceMessagesException.TOKEN_INVALID);
 
-        if (refreshToken != null && refreshToken.User?.Status != UserStatus.Active)
+        if (refreshToken != null && refreshToken.User?.CanAuthenticate != true)
             errors.Add(ResourceMessagesException.USER_NOT_FOUND);
 
         if (errors.Count > 0)

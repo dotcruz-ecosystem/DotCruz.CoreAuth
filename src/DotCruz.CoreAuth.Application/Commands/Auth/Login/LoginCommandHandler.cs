@@ -50,8 +50,11 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
         {
             var email = request.Email.ToLowerInvariant();
 
-            var user = await _userReadRepository.GetUserByEmailAsync(email, cancellationToken) 
+            var user = await _userReadRepository.GetUserByEmailAsync(email, cancellationToken)
                 ?? throw new InvalidLoginException();
+
+            if (!user.CanAuthenticate)
+                throw new InvalidLoginException();
 
             var passwordMatch = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash!);
 
