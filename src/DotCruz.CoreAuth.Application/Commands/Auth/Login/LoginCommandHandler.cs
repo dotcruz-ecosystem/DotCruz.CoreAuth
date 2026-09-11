@@ -81,7 +81,10 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
                 user.Id,
                 user.Name,
                 user.Email,
-                new ResponseTokensDto(accessToken, refreshTokenString)
+                new ResponseTokensDto(accessToken, refreshTokenString),
+                tenantSummary != null 
+                    ? new ResponseLoginTenantDto(tenantSummary.Id, tenantSummary.Name, tenantSummary.Slug, tenantSummary.Type, tenantSummary.Plan)
+                    : null
             );
         }
     }
