@@ -12,14 +12,16 @@ public class RefreshTokenRepository(CoreAuthDbContext context)
     public async Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken)
     {
         return await _dbSet
+            .IgnoreQueryFilters()
             .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => rt.Token == token, cancellationToken);
+            .FirstOrDefaultAsync(rt => rt.Token == token && rt.DeletedAt == null && (rt.User == null || rt.User.DeletedAt == null), cancellationToken);
     }
 
     public async Task<IEnumerable<RefreshToken>> GetActiveTokensByUserIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         return await _dbSet
-            .Where(rt => rt.UserId == userId && rt.RevokedAt == null && rt.ExpiresAt > DateTime.UtcNow)
+            .IgnoreQueryFilters()
+            .Where(rt => rt.UserId == userId && rt.RevokedAt == null && rt.ExpiresAt > DateTime.UtcNow && rt.DeletedAt == null)
             .ToListAsync(cancellationToken);
     }
 }

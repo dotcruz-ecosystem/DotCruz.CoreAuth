@@ -13,11 +13,14 @@ public class ActivationTokenRepository : BaseRepository<ActivationToken>, IActiv
     public async Task<ActivationToken?> GetActiveByTokenAsync(string tokenHash, CancellationToken cancellationToken)
     {
         return await _dbSet
+            .IgnoreQueryFilters()
             .Include(t => t.User)
             .FirstOrDefaultAsync(t => 
                 t.Token == tokenHash && 
                 t.UsedAt == null && 
-                t.ExpiresAt > DateTime.UtcNow, 
+                t.ExpiresAt > DateTime.UtcNow &&
+                t.DeletedAt == null &&
+                (t.User == null || t.User.DeletedAt == null), 
                 cancellationToken
             );
     }
