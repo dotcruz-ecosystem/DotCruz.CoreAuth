@@ -78,4 +78,24 @@ public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(
         await _mediator.Send(new RevokeAllUserTokensCommand(), cancellationToken);
         return NoContent();
     }
+
+    [HttpPost]
+    [Route("switch-workspace")]
+    [ProducesResponseType(typeof(ResponseLoginDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SwitchWorkspace([FromBody] DotCruz.CoreAuth.Application.Commands.Auth.SwitchWorkspace.SwitchWorkspaceCommand command, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(command, cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpGet]
+    [Route("workspaces")]
+    [ProducesResponseType(typeof(IReadOnlyCollection<DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses.UserWorkspaceDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetWorkspaces(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new DotCruz.CoreAuth.Application.Queries.Auth.GetUserWorkspaces.GetUserWorkspacesQuery(), cancellationToken);
+        return Ok(result);
+    }
 }

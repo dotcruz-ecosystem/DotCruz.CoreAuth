@@ -183,4 +183,10 @@
   <data name="EXTERNAL_INTEGRATION_ERROR" xml:space="preserve">
     <value>External integration error ({0}): {1}</value>
   </data>
+  <data name="WORKSPACE_NOT_FOUND" xml:space="preserve">
+    <value>Workspace not found.</value>
+  </data>
+  <data name="WORKSPACE_NOT_MEMBER_OR_INACTIVE" xml:space="preserve">
+    <value>User is not an active member of this workspace.</value>
+  </data>
 </root>

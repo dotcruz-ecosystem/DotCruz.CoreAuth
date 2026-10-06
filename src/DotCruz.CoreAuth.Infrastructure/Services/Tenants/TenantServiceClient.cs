@@ -12,6 +12,7 @@ namespace DotCruz.CoreAuth.Infrastructure.Services.Tenants;
 public class TenantServiceClient : ITenantServiceClient
 {
     private const string TENANT_SUMMARY_ENDPOINT = "api/tenants/{0}/summary";
+    private const string USER_WORKSPACES_ENDPOINT = "api/tenants/users/{0}/workspaces";
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<TenantServiceClient> _logger;
@@ -38,6 +39,28 @@ public class TenantServiceClient : ITenantServiceClient
         }
 
         return await response.Content.ReadFromJsonAsync<TenantSummaryDto>(_serializerOptions, cancellationToken: cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<UserWorkspaceDto>> GetUserWorkspacesAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync(string.Format(USER_WORKSPACES_ENDPOINT, userId), cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to fetch user workspaces for UserId {UserId}. StatusCode: {StatusCode}", userId, response.StatusCode);
+                return [];
+            }
+
+            var workspaces = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<UserWorkspaceDto>>(_serializerOptions, cancellationToken: cancellationToken);
+            return workspaces ?? [];
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching user workspaces for UserId {UserId}", userId);
+            return [];
+        }
     }
 
     private async Task HandleErrorResponse(HttpResponseMessage response, CancellationToken cancellationToken)

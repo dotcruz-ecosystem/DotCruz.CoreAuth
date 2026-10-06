@@ -3,6 +3,7 @@ using CommonTestUtilities.Entities.Users;
 using CommonTestUtilities.Repositories.Users;
 using CommonTestUtilities.Requests.Users;
 using CommonTestUtilities.Security;
+using CommonTestUtilities.Services;
 using DotCruz.CoreAuth.Application.Commands.Auth.Login;
 using DotCruz.CoreAuth.Domain.Entities.Users;
 using DotCruz.CoreAuth.Domain.Enums.Users;
@@ -50,6 +51,58 @@ namespace Command.Test.Auth.Login
             Assert.Equal(user.Email, result.Email);
             Assert.Equal("access-token", result.Tokens.AccessToken);
             Assert.Equal("refresh-token", result.Tokens.RefreshToken);
+        }
+
+        [Fact]
+        public async Task Success_With_Workspaces()
+        {
+            var preferredTenantId = Guid.NewGuid();
+            var command = new LoginCommand("collab@dotcruz.com", "Password123!", preferredTenantId);
+            var user = UserBuilder.Build(email: command.Email);
+
+            var workspace = UserWorkspaceDtoBuilder.Build(
+                tenantId: preferredTenantId,
+                tenantType: "Personal",
+                role: "Member",
+                memberStatus: "Active",
+                plan: "Free");
+
+            var userReadRepository = new UserReadRepositoryBuilder()
+                .SetupGetUserByEmail(user)
+                .Build();
+
+            var passwordHasher = new PasswordHasherBuilder()
+                .SetupVerifyPassword(true)
+                .Build();
+
+            var tenantServiceClient = new TenantServiceClientBuilder()
+                .SetupGetUserWorkspaces(user.Id, [workspace])
+                .Build();
+
+            var accessTokenGenerator = new Mock<IAccessTokenGenerator>();
+            accessTokenGenerator
+                .Setup(a => a.Generate(user, "Personal", "Free", preferredTenantId, "Member"))
+                .Returns("preferred-access-token");
+
+            var refreshTokenGenerator = new Mock<IRefreshTokenGenerator>();
+            refreshTokenGenerator.Setup(r => r.Generate()).Returns("preferred-refresh-token");
+
+            var handler = new LoginCommandHandlerBuilder()
+                .SetUserReadRepository(userReadRepository)
+                .SetPasswordHasher(passwordHasher)
+                .SetTenantServiceClient(tenantServiceClient)
+                .SetAccessTokenGenerator(accessTokenGenerator.Object)
+                .SetRefreshTokenGenerator(refreshTokenGenerator.Object)
+                .Build();
+
+            var result = await handler.Handle(command, TestContext.Current.CancellationToken);
+
+            Assert.NotNull(result);
+            Assert.Equal("preferred-access-token", result.Tokens.AccessToken);
+            Assert.NotNull(result.Tenant);
+            Assert.Equal(preferredTenantId, result.Tenant.Id);
+            Assert.Equal("Member", result.Tenant.Role);
+            Assert.Single(result.Workspaces!);
         }
 
         [Fact]

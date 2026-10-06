@@ -18,14 +18,27 @@ namespace DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Generator
             _jwtTokenSettings = jwtTokenSettings.Value;
         }
 
-        public string Generate(User user, string? tenantType = null, string? tenantPlan = null)
+        public string Generate(
+            User user, 
+            string? tenantType = null, 
+            string? tenantPlan = null, 
+            Guid? activeTenantId = null, 
+            string? workspaceRole = null)
         {
+            var effectiveTenantId = activeTenantId ?? user.TenantId;
+
             var claims = new List<Claim>()
             {
                 new(ClaimTypes.Sid, user.Id.ToString()),
                 new(ClaimTypes.Role, user.Type.ToString()),
-                new(CustomClaimTypes.TenantId, user.TenantId.ToString())
+                new(CustomClaimTypes.TenantId, effectiveTenantId.ToString())
             };
+
+            if (!string.IsNullOrWhiteSpace(workspaceRole))
+            {
+                claims.Add(new Claim(CustomClaimTypes.WorkspaceRole, workspaceRole));
+                claims.Add(new Claim(ClaimTypes.Role, workspaceRole));
+            }
 
             if (!string.IsNullOrWhiteSpace(tenantType))
                 claims.Add(new Claim(CustomClaimTypes.TenantType, tenantType));

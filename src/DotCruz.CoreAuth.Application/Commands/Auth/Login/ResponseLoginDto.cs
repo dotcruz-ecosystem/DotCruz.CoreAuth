@@ -1,3 +1,5 @@
+using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses;
+
 namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
 {
     public sealed record ResponseLoginTenantDto(
@@ -5,7 +7,8 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
         string Name,
         string Slug,
         string? Type,
-        string? Plan
+        string? Plan,
+        string? Role = null
     );
 
     public record ResponseLoginDto(
@@ -13,7 +16,8 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
         string Name,
         string Email,
         ResponseTokensDto Tokens,
-        ResponseLoginTenantDto? Tenant = null
+        ResponseLoginTenantDto? Tenant = null,
+        IReadOnlyCollection<UserWorkspaceDto>? Workspaces = null
     );
 }
 

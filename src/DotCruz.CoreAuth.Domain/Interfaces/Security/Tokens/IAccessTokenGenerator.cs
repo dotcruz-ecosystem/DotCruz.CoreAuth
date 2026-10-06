@@ -4,6 +4,11 @@ namespace DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens
 {
     public interface IAccessTokenGenerator
     {
-        public string Generate(User user, string? tenantType = null, string? tenantPlan = null);
+        string Generate(
+            User user, 
+            string? tenantType = null, 
+            string? tenantPlan = null, 
+            Guid? activeTenantId = null, 
+            string? workspaceRole = null);
     }
 }

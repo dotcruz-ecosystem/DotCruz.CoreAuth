@@ -61,9 +61,47 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
             if (!passwordMatch)
                 throw new InvalidLoginException();
 
-            var tenantSummary = await _tenantServiceClient.GetTenantSummaryAsync(user.TenantId, cancellationToken);
+            var workspaces = await _tenantServiceClient.GetUserWorkspacesAsync(user.Id, cancellationToken) ?? [];
 
-            var accessToken = _accessTokenGenerator.Generate(user, tenantSummary?.Type, tenantSummary?.Plan);
+            DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses.UserWorkspaceDto? activeWorkspace = null;
+
+            if (request.PreferredTenantId.HasValue)
+            {
+                activeWorkspace = workspaces.FirstOrDefault(w => 
+                    w.TenantId == request.PreferredTenantId.Value && 
+                    string.Equals(w.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (activeWorkspace is null && workspaces.Count > 0)
+            {
+                activeWorkspace = workspaces.FirstOrDefault(w => 
+                    w.TenantId == user.TenantId && 
+                    string.Equals(w.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase))
+                    ?? workspaces.FirstOrDefault(w => 
+                    string.Equals(w.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase))
+                    ?? workspaces.First();
+            }
+
+            Guid activeTenantId = activeWorkspace?.TenantId ?? user.TenantId;
+            string? activeType = activeWorkspace?.TenantType;
+            string? activePlan = activeWorkspace?.Plan;
+            string? activeRole = activeWorkspace?.Role;
+
+            DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses.TenantSummaryDto? tenantSummary = null;
+            if (activeWorkspace is null && activeTenantId != Guid.Empty)
+            {
+                tenantSummary = await _tenantServiceClient.GetTenantSummaryAsync(activeTenantId, cancellationToken);
+                activeType = tenantSummary?.Type;
+                activePlan = tenantSummary?.Plan;
+            }
+
+            var accessToken = _accessTokenGenerator.Generate(
+                user, 
+                activeType, 
+                activePlan, 
+                activeTenantId != Guid.Empty && activeTenantId != user.TenantId ? activeTenantId : null, 
+                activeRole);
+
             var refreshTokenString = _refreshTokenGenerator.Generate();
             var hashedRefreshToken = _tokenProvider.Hash(refreshTokenString);
 
@@ -77,14 +115,36 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
 
             await _unitOfWork.CommitAsync(cancellationToken);
 
+            ResponseLoginTenantDto? responseTenant = null;
+            if (activeWorkspace != null)
+            {
+                responseTenant = new ResponseLoginTenantDto(
+                    activeWorkspace.TenantId,
+                    activeWorkspace.TenantName,
+                    activeWorkspace.TenantSlug,
+                    activeWorkspace.TenantType,
+                    activeWorkspace.Plan,
+                    activeWorkspace.Role
+                );
+            }
+            else if (tenantSummary != null)
+            {
+                responseTenant = new ResponseLoginTenantDto(
+                    tenantSummary.Id,
+                    tenantSummary.Name,
+                    tenantSummary.Slug,
+                    tenantSummary.Type,
+                    tenantSummary.Plan
+                );
+            }
+
             return new ResponseLoginDto(
                 user.Id,
                 user.Name,
                 user.Email,
                 new ResponseTokensDto(accessToken, refreshTokenString),
-                tenantSummary != null 
-                    ? new ResponseLoginTenantDto(tenantSummary.Id, tenantSummary.Name, tenantSummary.Slug, tenantSummary.Type, tenantSummary.Plan)
-                    : null
+                responseTenant,
+                workspaces
             );
         }
     }
