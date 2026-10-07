@@ -16,13 +16,13 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
 
     private readonly string _email;
     private readonly string _token;
-    private readonly string _tenantId;
+    private readonly string _workspaceId;
 
     public CreateUserTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _email = factory.GetEmail();
         _token = factory.GetSuperAdminAccessToken();
-        _tenantId = factory.GetTenantId().ToString()!;
+        _workspaceId = factory.GetWorkspaceId().ToString()!;
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
 
         createdId.Should().NotBeEmpty();
 
-        var getResponse = await DoGet(token: _token, method: $"api/users/{createdId}", tenantId: command.TenantId.ToString());
+        var getResponse = await DoGet(token: _token, method: $"api/users/{createdId}", workspaceId: command.WorkspaceId.ToString());
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var getResponseBody = await getResponse.Content.ReadAsStringAsync();
@@ -105,7 +105,7 @@ public class CreateUserTest : DotCruzCoreAuthClassFixture
     {
         var command = CreateUserCommandBuilder.Build() with { Email = _email };
 
-        var response = await DoPost(token: _token, method: METHOD, request: command, culture: culture, tenantId: _tenantId);
+        var response = await DoPost(token: _token, method: METHOD, request: command, culture: culture, workspaceId: _workspaceId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 

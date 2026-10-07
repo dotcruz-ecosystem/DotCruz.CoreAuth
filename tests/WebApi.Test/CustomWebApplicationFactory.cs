@@ -1,5 +1,6 @@
 using CommonTestUtilities.Entities.Tokens;
 using CommonTestUtilities.Entities.Users;
+using CommonTestUtilities.Security;
 using CommonTestUtilities.Services;
 using DotCruz.CoreAuth.Domain.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Entities.Users;
@@ -11,10 +12,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Moq;
 using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces.Responses;
 
 namespace WebApi.Test;
 
@@ -57,7 +57,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("Settings__PasswordResetTokenSettings__ExpirationTimeInMinutes", "60");
         Environment.SetEnvironmentVariable("Settings__Notification__BaseUrl", "https://localhost:5001");
         Environment.SetEnvironmentVariable("Settings__Notification__ApiKey", "test-api-key");
-        Environment.SetEnvironmentVariable("Settings__Tenant__BaseUrl", "https://localhost:5002");
+        Environment.SetEnvironmentVariable("Settings__Workspace__BaseUrl", "https://localhost:5002");
+        Environment.SetEnvironmentVariable("Settings__Workspaces__BaseUrl", "https://localhost:5002");
         Environment.SetEnvironmentVariable("Settings__ServiceAuth__Self__Name", "test-service");
         Environment.SetEnvironmentVariable("Settings__ServiceAuth__Self__Key", "test-service-key");
         Environment.SetEnvironmentVariable("Settings__WorkspaceMessaging__UseInMemory", "true");
@@ -113,22 +114,20 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     };
                 });
 
-                var tenantDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(ITenantProvider));
-                if (tenantDescriptor is not null)
-                    services.Remove(tenantDescriptor);
+                var workspaceDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IWorkspaceProvider));
+                if (workspaceDescriptor is not null)
+                    services.Remove(workspaceDescriptor);
 
-                services.AddScoped<ITenantProvider>(sp =>
+                services.AddScoped<IWorkspaceProvider>(sp =>
                 {
                     var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
                     var httpContext = httpContextAccessor.HttpContext;
-                    Guid? tenantId = null;
+                    Guid? workspaceId = null;
                     
-                    if (httpContext != null && httpContext.Request.Headers.TryGetValue("X-Tenant-ID", out var values) && Guid.TryParse(values, out var parsedGuid))
-                        tenantId = parsedGuid;
+                    if (httpContext != null && httpContext.Request.Headers.TryGetValue("X-Workspace-ID", out var values) && Guid.TryParse(values, out var parsedGuid))
+                        workspaceId = parsedGuid;
                     
-                    var mock = new Mock<ITenantProvider>();
-                    mock.Setup(t => t.TenantId).Returns(tenantId);
-                    return mock.Object;
+                    return WorkspaceProviderBuilder.Build(workspaceId);
                 });
 
                 var emailDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IEmailService));
@@ -137,16 +136,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
                 services.AddScoped(_ => EmailServiceBuilder.Build());
 
-                var tenantClientDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(ITenantServiceClient));
-                if (tenantClientDescriptor is not null)
-                    services.Remove(tenantClientDescriptor);
+                var workspaceClientDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IWorkspaceServiceClient));
+                if (workspaceClientDescriptor is not null)
+                    services.Remove(workspaceClientDescriptor);
 
-                var tenantServiceMock = new Mock<ITenantServiceClient>();
-                tenantServiceMock
-                    .Setup(s => s.GetTenantSummaryAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync((Guid id, CancellationToken _) => new TenantSummaryDto(id, "Test Tenant", "test-tenant", "Active", "Standard", "Pro"));
-
-                services.AddScoped(_ => tenantServiceMock.Object);
+                services.AddScoped(_ => new WorkspaceServiceClientBuilder().SetupDefaultWorkspaceSummary().Build());
 
                 var publisherDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DotCruz.CoreAuth.Application.Interfaces.Services.Messaging.IWorkspaceProvisioningPublisher));
                 if (publisherDescriptor is not null)
@@ -166,7 +160,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public string GetPassword() => _password;
     public string GetName() => _user.Name;
     public Guid GetUserId() => _user.Id;
-    public Guid? GetTenantId() => _user.TenantId;
+    public Guid? GetWorkspaceId() => _user.WorkspaceId;
     public string GetRefreshToken() => _refreshTokenValue;
 
     public string GenerateAccessToken(User user)
@@ -191,19 +185,18 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     public string GetSuperAdminAccessToken() => GenerateAccessToken(_superAdminUser);
 
-    public string GetTenantUserAccessToken() => GenerateAccessToken(_user);
+    public string GetUserAccessToken() => GenerateAccessToken(_user);
 
-    public string GenerateSuperAdminTokenForOtherTenant()
+    public string GenerateSuperAdminTokenForOtherWorkspace()
     {
         var foreignUser = UserBuilder.Build(
             name: "Foreign Admin",
             email: $"foreign-{Guid.NewGuid():N}@example.com",
             passwordHashed: "irrelevant-for-token-generation",
-            tenantId: Guid.NewGuid(),
-            status: UserStatus.Active
+            workspaceId: Guid.NewGuid(),
+            status: UserStatus.Active,
+            type: UserType.SuperAdmin
         );
-
-        foreignUser.Update(name: null, email: null, passwordHash: null, type: UserType.SuperAdmin, tenantId: foreignUser.TenantId);
 
         return GenerateAccessToken(foreignUser);
     }
@@ -218,7 +211,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
             string GenerateStrongPassword() => faker.Internet.Password(12, false, @"[a-zA-Z0-9]") + "1!Aa";
 
-            var tenantId = Guid.NewGuid();
+            var workspaceId = Guid.NewGuid();
 
             _password = GenerateStrongPassword();
             var activeUserHash = hasher.HashPassword(_password);
@@ -226,9 +219,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 name: faker.Person.FullName,
                 email: faker.Internet.Email(),
                 passwordHashed: activeUserHash,
-                tenantId: tenantId,
+                workspaceId: workspaceId,
                 status: UserStatus.Active,
-                type: UserType.TenantUser
+                type: UserType.User
             );
         
             dbContext.Users.Add(_user);
@@ -255,9 +248,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 name: faker.Person.FullName,
                 email: faker.Internet.Email(),
                 passwordHashed: null,
-                tenantId: tenantId,
+                workspaceId: workspaceId,
                 status: UserStatus.PendingActivation,
-                type: UserType.TenantUser
+                type: UserType.User
             );
 
             dbContext.Users.Add(_pendingUser);
@@ -277,11 +270,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 name: faker.Person.FullName,
                 email: faker.Internet.Email(),
                 passwordHashed: superAdminHash,
-                tenantId: tenantId,
-                status: UserStatus.Active
+                workspaceId: Guid.Empty,
+                status: UserStatus.Active,
+                type: UserType.SuperAdmin
             );
-        
-            _superAdminUser.Update(name: null, email: null, passwordHash: null, type: UserType.SuperAdmin, tenantId: tenantId);
 
             dbContext.Users.Add(_superAdminUser);
 

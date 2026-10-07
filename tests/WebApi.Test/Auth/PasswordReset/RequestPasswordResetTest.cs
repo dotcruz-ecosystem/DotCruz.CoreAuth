@@ -14,12 +14,12 @@ public class RequestPasswordResetTest : DotCruzCoreAuthClassFixture
     private readonly string METHOD = "api/auth/password-reset/request";
 
     private readonly string _email;
-    private readonly string _tenantId;
+    private readonly string _workspaceId;
 
     public RequestPasswordResetTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _email = factory.GetEmail();
-        _tenantId = factory.GetTenantId().ToString()!;
+        _workspaceId = factory.GetWorkspaceId().ToString()!;
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class RequestPasswordResetTest : DotCruzCoreAuthClassFixture
     {
         var command = RequestPasswordResetCommandBuilder.Build() with { Email = _email };
 
-        var response = await DoPost(method: METHOD, request: command, tenantId: _tenantId);
+        var response = await DoPost(method: METHOD, request: command, workspaceId: _workspaceId);
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
@@ -37,7 +37,7 @@ public class RequestPasswordResetTest : DotCruzCoreAuthClassFixture
     {
         var command = RequestPasswordResetCommandBuilder.Build() with { Email = "notexists@example.com" };
 
-        var response = await DoPost(method: METHOD, request: command, tenantId: _tenantId);
+        var response = await DoPost(method: METHOD, request: command, workspaceId: _workspaceId);
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
@@ -48,7 +48,7 @@ public class RequestPasswordResetTest : DotCruzCoreAuthClassFixture
     {
         var command = RequestPasswordResetCommandBuilder.Build() with { Email = string.Empty };
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, workspaceId: _workspaceId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -65,7 +65,7 @@ public class RequestPasswordResetTest : DotCruzCoreAuthClassFixture
     {
         var command = RequestPasswordResetCommandBuilder.Build() with { Email = "invalid-email" };
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, workspaceId: _workspaceId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 

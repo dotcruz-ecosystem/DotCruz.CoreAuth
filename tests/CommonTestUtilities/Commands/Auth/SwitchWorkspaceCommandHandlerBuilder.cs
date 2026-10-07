@@ -2,7 +2,7 @@ using CommonTestUtilities.Data;
 using CommonTestUtilities.Security;
 using CommonTestUtilities.Services;
 using DotCruz.CoreAuth.Application.Commands.Auth.SwitchWorkspace;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Interfaces.Data;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Tokens;
@@ -16,7 +16,7 @@ namespace CommonTestUtilities.Commands.Auth;
 public class SwitchWorkspaceCommandHandlerBuilder
 {
     private ILoggedUser _loggedUser = new LoggedUserBuilder().Build();
-    private ITenantServiceClient _tenantServiceClient = new TenantServiceClientBuilder().Build();
+    private IWorkspaceServiceClient _workspaceServiceClient = new WorkspaceServiceClientBuilder().Build();
     private IAccessTokenGenerator _accessTokenGenerator = new Mock<IAccessTokenGenerator>().Object;
     private IRefreshTokenGenerator _refreshTokenGenerator = new Mock<IRefreshTokenGenerator>().Object;
     private IRefreshTokenWriteRepository _refreshTokenWriteRepository = new Mock<IRefreshTokenWriteRepository>().Object;
@@ -30,9 +30,9 @@ public class SwitchWorkspaceCommandHandlerBuilder
         return this;
     }
 
-    public SwitchWorkspaceCommandHandlerBuilder SetTenantServiceClient(ITenantServiceClient tenantServiceClient)
+    public SwitchWorkspaceCommandHandlerBuilder SetWorkspaceServiceClient(IWorkspaceServiceClient workspaceServiceClient)
     {
-        _tenantServiceClient = tenantServiceClient;
+        _workspaceServiceClient = workspaceServiceClient;
         return this;
     }
 
@@ -52,7 +52,7 @@ public class SwitchWorkspaceCommandHandlerBuilder
     {
         return new SwitchWorkspaceCommandHandler(
             _loggedUser,
-            _tenantServiceClient,
+            _workspaceServiceClient,
             _accessTokenGenerator,
             _refreshTokenGenerator,
             _refreshTokenWriteRepository,

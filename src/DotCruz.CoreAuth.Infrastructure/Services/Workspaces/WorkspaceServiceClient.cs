@@ -1,5 +1,5 @@
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces.Responses;
 using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
 using DotCruz.CoreAuth.Domain.Exceptions.Resources;
 using Microsoft.Extensions.Logging;
@@ -7,38 +7,38 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace DotCruz.CoreAuth.Infrastructure.Services.Tenants;
+namespace DotCruz.CoreAuth.Infrastructure.Services.Workspaces;
 
-public class TenantServiceClient : ITenantServiceClient
+public class WorkspaceServiceClient : IWorkspaceServiceClient
 {
-    private const string TENANT_SUMMARY_ENDPOINT = "api/tenants/{0}/summary";
-    private const string USER_WORKSPACES_ENDPOINT = "api/tenants/users/{0}/workspaces";
+    private const string WORKSPACE_SUMMARY_ENDPOINT = "api/workspaces/{0}/summary";
+    private const string USER_WORKSPACES_ENDPOINT = "api/workspaces/users/{0}/workspaces";
 
     private readonly HttpClient _httpClient;
-    private readonly ILogger<TenantServiceClient> _logger;
+    private readonly ILogger<WorkspaceServiceClient> _logger;
 
     private readonly JsonSerializerOptions _serializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
 
-    public TenantServiceClient(HttpClient httpClient, ILogger<TenantServiceClient> logger)
+    public WorkspaceServiceClient(HttpClient httpClient, ILogger<WorkspaceServiceClient> logger)
     {
         _httpClient = httpClient;
         _logger = logger;
     }
 
-    public async Task<TenantSummaryDto?> GetTenantSummaryAsync(Guid tenantId, CancellationToken cancellationToken)
+    public async Task<WorkspaceSummaryDto?> GetWorkspaceSummaryAsync(Guid workspaceId, CancellationToken cancellationToken)
     {
-        var response = await _httpClient.GetAsync(string.Format(TENANT_SUMMARY_ENDPOINT, tenantId), cancellationToken);
+        var response = await _httpClient.GetAsync(string.Format(WORKSPACE_SUMMARY_ENDPOINT, workspaceId), cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogWarning("Failed to fetch tenant summary for TenantId {TenantId}. StatusCode: {StatusCode}", tenantId, response.StatusCode);
+            _logger.LogWarning("Failed to fetch workspace summary for WorkspaceId {WorkspaceId}. StatusCode: {StatusCode}", workspaceId, response.StatusCode);
             await HandleErrorResponse(response, cancellationToken);
         }
 
-        return await response.Content.ReadFromJsonAsync<TenantSummaryDto>(_serializerOptions, cancellationToken: cancellationToken);
+        return await response.Content.ReadFromJsonAsync<WorkspaceSummaryDto>(_serializerOptions, cancellationToken: cancellationToken);
     }
 
     public async Task<IReadOnlyCollection<UserWorkspaceDto>> GetUserWorkspacesAsync(Guid userId, CancellationToken cancellationToken)
@@ -66,7 +66,7 @@ public class TenantServiceClient : ITenantServiceClient
     private async Task HandleErrorResponse(HttpResponseMessage response, CancellationToken cancellationToken)
     {
         var errors = await GetErrorsAsync(response, cancellationToken);
-        var primaryError = errors.FirstOrDefault() ?? ResourceMessagesException.UNKNOWN_ERROR_TENANT;
+        var primaryError = errors.FirstOrDefault() ?? ResourceMessagesException.UNKNOWN_ERROR_WORKSPACE;
 
         throw response.StatusCode switch
         {
@@ -83,7 +83,7 @@ public class TenantServiceClient : ITenantServiceClient
     {
         try
         {
-            var errorResponse = await response.Content.ReadFromJsonAsync<TenantErrorResponse>(_serializerOptions, cancellationToken);
+            var errorResponse = await response.Content.ReadFromJsonAsync<WorkspaceErrorResponse>(_serializerOptions, cancellationToken);
             return errorResponse?.Errors ?? [];
         }
         catch

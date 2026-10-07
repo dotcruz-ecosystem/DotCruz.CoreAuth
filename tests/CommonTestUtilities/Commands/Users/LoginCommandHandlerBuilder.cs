@@ -10,7 +10,7 @@ using DotCruz.CoreAuth.Domain.Interfaces.Security;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
 using Microsoft.Extensions.Options;
 using Moq;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces;
 
 namespace CommonTestUtilities.Commands.Users
 {
@@ -22,7 +22,7 @@ namespace CommonTestUtilities.Commands.Users
         private IRefreshTokenGenerator _refreshTokenGenerator = new Mock<IRefreshTokenGenerator>().Object;
         private IRefreshTokenWriteRepository _refreshTokenWriteRepository = new Mock<IRefreshTokenWriteRepository>().Object;
         private ITokenProvider _tokenProvider = new TestTokenProvider();
-        private ITenantServiceClient _tenantServiceClient = new Mock<ITenantServiceClient>().Object;
+        private IWorkspaceServiceClient _workspaceServiceClient = new Mock<IWorkspaceServiceClient>().Object;
         private IUnitOfWork _unitOfWork = UnitOfWorkBuilder.Build();
         private IOptions<JwtTokenSettings> _jwtTokenSettings = Options.Create(new JwtTokenSettings { RefreshTokenExpirationTimeDays = 7 });
 
@@ -56,9 +56,9 @@ namespace CommonTestUtilities.Commands.Users
             return this;
         }
 
-        public LoginCommandHandlerBuilder SetTenantServiceClient(ITenantServiceClient tenantServiceClient)
+        public LoginCommandHandlerBuilder SetWorkspaceServiceClient(IWorkspaceServiceClient workspaceServiceClient)
         {
-            _tenantServiceClient = tenantServiceClient;
+            _workspaceServiceClient = workspaceServiceClient;
             return this;
         }
 
@@ -71,7 +71,7 @@ namespace CommonTestUtilities.Commands.Users
                 _refreshTokenGenerator,
                 _refreshTokenWriteRepository,
                 _tokenProvider,
-                _tenantServiceClient,
+                _workspaceServiceClient,
                 _unitOfWork,
                 _jwtTokenSettings
             );

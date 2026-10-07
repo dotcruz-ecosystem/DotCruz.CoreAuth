@@ -34,9 +34,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.CreatedAt).IsRequired();
         builder.Property(x => x.UpdatedAt).IsRequired();
         builder.Property(x => x.DeletedAt).IsRequired(false);
-        builder.Property(x => x.DefaultTenantId)
-            .HasColumnName("tenant_id")
+        builder.Property(x => x.DefaultWorkspaceId)
+            .HasColumnName("workspace_id")
             .IsRequired(false);
-        builder.Ignore(x => x.TenantId);
+        builder.Ignore(x => x.WorkspaceId);
     }
 }

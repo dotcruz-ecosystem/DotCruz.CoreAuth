@@ -14,12 +14,12 @@ public class RefreshTokenTest : DotCruzCoreAuthClassFixture
     private readonly string METHOD = "api/auth/refresh-token";
 
     private readonly string _refreshToken;
-    private readonly string _tenantId;
+    private readonly string _workspaceId;
 
     public RefreshTokenTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _refreshToken = factory.GetRefreshToken();
-        _tenantId = factory.GetTenantId().ToString()!;
+        _workspaceId = factory.GetWorkspaceId().ToString()!;
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class RefreshTokenTest : DotCruzCoreAuthClassFixture
     {
         var command = new RefreshTokenCommand(_refreshToken);
 
-        var response = await DoPost(method: METHOD, request: command, tenantId: _tenantId);
+        var response = await DoPost(method: METHOD, request: command, workspaceId: _workspaceId);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -44,7 +44,7 @@ public class RefreshTokenTest : DotCruzCoreAuthClassFixture
     {
         var command = new RefreshTokenCommand("invalid-refresh-token");
 
-        var response = await DoPost(method: METHOD, request: command, culture: culture, tenantId: _tenantId);
+        var response = await DoPost(method: METHOD, request: command, culture: culture, workspaceId: _workspaceId);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 

@@ -5,6 +5,6 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
     public record LoginCommand(
         string Email, 
         string Password, 
-        Guid? PreferredTenantId = null
+        Guid? PreferredWorkspaceId = null
     ) : IRequest<ResponseLoginDto>;
 }

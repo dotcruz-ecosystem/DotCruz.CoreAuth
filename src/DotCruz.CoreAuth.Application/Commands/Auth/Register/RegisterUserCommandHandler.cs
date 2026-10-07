@@ -49,7 +49,7 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, G
         if (await _userReadRepository.ExistsActiveUserWithEmailAsync(email, cancellationToken))
             throw new ErrorOnValidationException(ResourceMessagesException.EMAIL_ALREADY_EXISTS);
 
-        var user = new User(request.Name.Trim(), email, UserType.TenantUser);
+        var user = new User(request.Name.Trim(), email, UserType.User);
         await _userWriteRepository.AddAsync(user, cancellationToken);
 
         var plainToken = _tokenProvider.Value();

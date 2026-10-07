@@ -34,7 +34,7 @@ public class GetUserByIdQueryHandlerTest
         result.Email.Should().Be(user.Email);
         result.Type.Should().Be(user.Type);
         result.Status.Should().Be(user.Status);
-        result.TenantId.Should().Be(user.TenantId);
+        result.WorkspaceId.Should().Be(user.WorkspaceId);
     }
 
     [Fact]

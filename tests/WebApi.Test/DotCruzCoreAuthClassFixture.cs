@@ -20,11 +20,11 @@ public class DotCruzCoreAuthClassFixture : IClassFixture<CustomWebApplicationFac
         object request,
         string token = "",
         string culture = "en",
-        string tenantId = "")
+        string workspaceId = "")
     {
         ChangeRequestCulture(culture);
         AuthorizeRequest(token);
-        AddTenantHeader(tenantId);
+        AddWorkspaceHeader(workspaceId);
 
         return await _httpClient.PostAsJsonAsync(method, request, JsonSerializerOptions);
     }
@@ -33,11 +33,11 @@ public class DotCruzCoreAuthClassFixture : IClassFixture<CustomWebApplicationFac
         string method,
         string token = "",
         string culture = "en",
-        string tenantId = "")
+        string workspaceId = "")
     {
         ChangeRequestCulture(culture);
         AuthorizeRequest(token);
-        AddTenantHeader(tenantId);
+        AddWorkspaceHeader(workspaceId);
 
         return await _httpClient.GetAsync(method);
     }
@@ -47,11 +47,11 @@ public class DotCruzCoreAuthClassFixture : IClassFixture<CustomWebApplicationFac
         object request,
         string token = "",
         string culture = "en",
-        string tenantId = "")
+        string workspaceId = "")
     {
         ChangeRequestCulture(culture);
         AuthorizeRequest(token);
-        AddTenantHeader(tenantId);
+        AddWorkspaceHeader(workspaceId);
 
         return await _httpClient.PutAsJsonAsync(method, request, JsonSerializerOptions);
     }
@@ -61,11 +61,11 @@ public class DotCruzCoreAuthClassFixture : IClassFixture<CustomWebApplicationFac
         object request,
         string token = "",
         string culture = "en",
-        string tenantId = "")
+        string workspaceId = "")
     {
         ChangeRequestCulture(culture);
         AuthorizeRequest(token);
-        AddTenantHeader(tenantId);
+        AddWorkspaceHeader(workspaceId);
 
         return await _httpClient.PatchAsJsonAsync(method, request, JsonSerializerOptions);
     }
@@ -74,11 +74,11 @@ public class DotCruzCoreAuthClassFixture : IClassFixture<CustomWebApplicationFac
         string method,
         string token = "",
         string culture = "en",
-        string tenantId = "")
+        string workspaceId = "")
     {
         ChangeRequestCulture(culture);
         AuthorizeRequest(token);
-        AddTenantHeader(tenantId);
+        AddWorkspaceHeader(workspaceId);
 
         return await _httpClient.DeleteAsync(method);
     }
@@ -101,12 +101,12 @@ public class DotCruzCoreAuthClassFixture : IClassFixture<CustomWebApplicationFac
         }
     }
 
-    private void AddTenantHeader(string tenantId)
+    private void AddWorkspaceHeader(string workspaceId)
     {
-        _httpClient.DefaultRequestHeaders.Remove("X-Tenant-ID");
-        if (!string.IsNullOrWhiteSpace(tenantId))
+        _httpClient.DefaultRequestHeaders.Remove("X-Workspace-ID");
+        if (!string.IsNullOrWhiteSpace(workspaceId))
         {
-            _httpClient.DefaultRequestHeaders.Add("X-Tenant-ID", tenantId);
+            _httpClient.DefaultRequestHeaders.Add("X-Workspace-ID", workspaceId);
         }
     }
 }

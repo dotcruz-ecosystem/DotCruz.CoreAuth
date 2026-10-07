@@ -7,7 +7,7 @@ public class SwitchWorkspaceCommandValidator : AbstractValidator<SwitchWorkspace
 {
     public SwitchWorkspaceCommandValidator()
     {
-        RuleFor(x => x.TargetTenantId)
+        RuleFor(x => x.TargetWorkspaceId)
             .NotEmpty().WithMessage(ResourceMessagesException.ID_EMPTY);
     }
 }

@@ -186,14 +186,6 @@ namespace DotCruz.CoreAuth.Domain.Exceptions.Resources {
             }
         }
         
-        /// <summary>
-        ///   Consulta uma cadeia de caracteres localizada semelhante a TenantId is required for tenant administrators and users..
-        /// </summary>
-        public static string TENANT_ID_REQUIRED {
-            get {
-                return ResourceManager.GetString("TENANT_ID_REQUIRED", resourceCulture);
-            }
-        }
         
         /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a The token cannot be empty..
@@ -231,14 +223,6 @@ namespace DotCruz.CoreAuth.Domain.Exceptions.Resources {
             }
         }
         
-        /// <summary>
-        ///   Consulta uma cadeia de caracteres localizada semelhante a An unknown error occurred in the Tenant API..
-        /// </summary>
-        public static string UNKNOWN_ERROR_TENANT {
-            get {
-                return ResourceManager.GetString("UNKNOWN_ERROR_TENANT", resourceCulture);
-            }
-        }
         
         /// <summary>
         ///   Consulta uma cadeia de caracteres localizada semelhante a User not found..
@@ -273,6 +257,24 @@ namespace DotCruz.CoreAuth.Domain.Exceptions.Resources {
         public static string WORKSPACE_NOT_MEMBER_OR_INACTIVE {
             get {
                 return ResourceManager.GetString("WORKSPACE_NOT_MEMBER_OR_INACTIVE", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a WorkspaceId is required..
+        /// </summary>
+        public static string WORKSPACE_ID_REQUIRED {
+            get {
+                return ResourceManager.GetString("WORKSPACE_ID_REQUIRED", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Consulta uma cadeia de caracteres localizada semelhante a An unknown error occurred in the Workspace API..
+        /// </summary>
+        public static string UNKNOWN_ERROR_WORKSPACE {
+            get {
+                return ResourceManager.GetString("UNKNOWN_ERROR_WORKSPACE", resourceCulture);
             }
         }
     }

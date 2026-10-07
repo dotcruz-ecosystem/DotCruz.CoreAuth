@@ -3,7 +3,7 @@ using CommonTestUtilities.Entities.Users;
 using CommonTestUtilities.Requests.Auth;
 using CommonTestUtilities.Security;
 using CommonTestUtilities.Services;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces.Responses;
 using DotCruz.CoreAuth.Domain.Entities.Users;
 using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
 using DotCruz.CoreAuth.Domain.Exceptions.Resources;
@@ -18,19 +18,19 @@ public class SwitchWorkspaceCommandHandlerTest
     public async Task Success()
     {
         var user = UserBuilder.Build();
-        var targetTenantId = Guid.NewGuid();
+        var targetWorkspaceId = Guid.NewGuid();
 
-        var workspaceA = UserWorkspaceDtoBuilder.Build(tenantId: user.TenantId, role: "Owner", memberStatus: "Active");
-        var workspaceB = UserWorkspaceDtoBuilder.Build(tenantId: targetTenantId, tenantType: "Dealership", role: "Admin", memberStatus: "Active", plan: "Pro");
+        var workspaceA = UserWorkspaceDtoBuilder.Build(workspaceId: user.WorkspaceId, role: "Owner", memberStatus: "Active");
+        var workspaceB = UserWorkspaceDtoBuilder.Build(workspaceId: targetWorkspaceId, workspaceType: "Dealership", role: "Admin", memberStatus: "Active", plan: "Pro");
 
         var loggedUser = new LoggedUserBuilder().SetupUser(user).Build();
-        var tenantServiceClient = new TenantServiceClientBuilder()
+        var workspaceServiceClient = new WorkspaceServiceClientBuilder()
             .SetupGetUserWorkspaces(user.Id, [workspaceA, workspaceB])
             .Build();
 
         var accessTokenGenerator = new Mock<IAccessTokenGenerator>();
         accessTokenGenerator
-            .Setup(a => a.Generate(user, "Dealership", "Pro", targetTenantId, "Admin"))
+            .Setup(a => a.Generate(user, "Dealership", "Pro", targetWorkspaceId, "Admin"))
             .Returns("switched-access-token");
 
         var refreshTokenGenerator = new Mock<IRefreshTokenGenerator>();
@@ -38,21 +38,21 @@ public class SwitchWorkspaceCommandHandlerTest
 
         var handler = new SwitchWorkspaceCommandHandlerBuilder()
             .SetLoggedUser(loggedUser)
-            .SetTenantServiceClient(tenantServiceClient)
+            .SetWorkspaceServiceClient(workspaceServiceClient)
             .SetAccessTokenGenerator(accessTokenGenerator.Object)
             .SetRefreshTokenGenerator(refreshTokenGenerator.Object)
             .Build();
 
-        var command = SwitchWorkspaceCommandBuilder.Build(targetTenantId: targetTenantId);
+        var command = SwitchWorkspaceCommandBuilder.Build(targetWorkspaceId: targetWorkspaceId);
         var result = await handler.Handle(command, TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal("switched-access-token", result.Tokens.AccessToken);
         Assert.Equal("switched-refresh-token", result.Tokens.RefreshToken);
-        Assert.NotNull(result.Tenant);
-        Assert.Equal(targetTenantId, result.Tenant.Id);
-        Assert.Equal("Dealership", result.Tenant.Type);
-        Assert.Equal("Admin", result.Tenant.Role);
+        Assert.NotNull(result.Workspace);
+        Assert.Equal(targetWorkspaceId, result.Workspace.Id);
+        Assert.Equal("Dealership", result.Workspace.Type);
+        Assert.Equal("Admin", result.Workspace.Role);
         Assert.Equal(2, result.Workspaces?.Count);
     }
 
@@ -60,20 +60,20 @@ public class SwitchWorkspaceCommandHandlerTest
     public async Task Error_Workspace_Not_Found()
     {
         var user = UserBuilder.Build();
-        var workspace = UserWorkspaceDtoBuilder.Build(tenantId: user.TenantId);
+        var workspace = UserWorkspaceDtoBuilder.Build(workspaceId: user.WorkspaceId);
 
         var loggedUser = new LoggedUserBuilder().SetupUser(user).Build();
-        var tenantServiceClient = new TenantServiceClientBuilder()
+        var workspaceServiceClient = new WorkspaceServiceClientBuilder()
             .SetupGetUserWorkspaces(user.Id, [workspace])
             .Build();
 
         var handler = new SwitchWorkspaceCommandHandlerBuilder()
             .SetLoggedUser(loggedUser)
-            .SetTenantServiceClient(tenantServiceClient)
+            .SetWorkspaceServiceClient(workspaceServiceClient)
             .Build();
 
-        var unknownTenantId = Guid.NewGuid();
-        var command = SwitchWorkspaceCommandBuilder.Build(targetTenantId: unknownTenantId);
+        var unknownWorkspaceId = Guid.NewGuid();
+        var command = SwitchWorkspaceCommandBuilder.Build(targetWorkspaceId: unknownWorkspaceId);
 
         Task act() => handler.Handle(command, TestContext.Current.CancellationToken);
 
@@ -85,22 +85,22 @@ public class SwitchWorkspaceCommandHandlerTest
     public async Task Error_Workspace_Member_Not_Active()
     {
         var user = UserBuilder.Build();
-        var inactiveTenantId = Guid.NewGuid();
+        var inactiveWorkspaceId = Guid.NewGuid();
         var workspace = UserWorkspaceDtoBuilder.Build(
-            tenantId: inactiveTenantId, 
+            workspaceId: inactiveWorkspaceId, 
             memberStatus: "Invited");
 
         var loggedUser = new LoggedUserBuilder().SetupUser(user).Build();
-        var tenantServiceClient = new TenantServiceClientBuilder()
+        var workspaceServiceClient = new WorkspaceServiceClientBuilder()
             .SetupGetUserWorkspaces(user.Id, [workspace])
             .Build();
 
         var handler = new SwitchWorkspaceCommandHandlerBuilder()
             .SetLoggedUser(loggedUser)
-            .SetTenantServiceClient(tenantServiceClient)
+            .SetWorkspaceServiceClient(workspaceServiceClient)
             .Build();
 
-        var command = SwitchWorkspaceCommandBuilder.Build(targetTenantId: inactiveTenantId);
+        var command = SwitchWorkspaceCommandBuilder.Build(targetWorkspaceId: inactiveWorkspaceId);
 
         Task act() => handler.Handle(command, TestContext.Current.CancellationToken);
 

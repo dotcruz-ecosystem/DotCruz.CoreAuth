@@ -16,21 +16,21 @@ public class GetUserByIdTest : DotCruzCoreAuthClassFixture
     private readonly string _email;
     private readonly string _name;
     private readonly string _token;
-    private readonly Guid _tenantId;
+    private readonly Guid _workspaceId;
 
     public GetUserByIdTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _userId = factory.GetUserId();
         _email = factory.GetEmail();
         _name = factory.GetName();
-        _token = factory.GetTenantUserAccessToken();
-        _tenantId = factory.GetTenantId().GetValueOrDefault();
+        _token = factory.GetUserAccessToken();
+        _workspaceId = factory.GetWorkspaceId().GetValueOrDefault();
     }
 
     [Fact]
     public async Task Success()
     {
-        var response = await DoGet(token: _token, method: $"{METHOD}/{_userId}", tenantId: _tenantId.ToString());
+        var response = await DoGet(token: _token, method: $"{METHOD}/{_userId}", workspaceId: _workspaceId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 

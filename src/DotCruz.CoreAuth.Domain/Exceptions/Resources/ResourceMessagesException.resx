@@ -162,8 +162,8 @@
   <data name="TOKEN_INVALID" xml:space="preserve">
     <value>Token invalid or expired.</value>
   </data>
-  <data name="TENANT_ID_REQUIRED" xml:space="preserve">
-    <value>TenantId is required for tenant administrators and users.</value>
+  <data name="WORKSPACE_ID_REQUIRED" xml:space="preserve">
+    <value>WorkspaceId is required.</value>
   </data>
   <data name="UNKNOWN_ERROR" xml:space="preserve">
     <value>Unknown error.</value>
@@ -177,8 +177,8 @@
   <data name="JWKS_NOT_FOUND" xml:space="preserve">
     <value>JWKS configuration is incomplete.</value>
   </data>
-  <data name="UNKNOWN_ERROR_TENANT" xml:space="preserve">
-    <value>An unknown error occurred in the Tenant API.</value>
+  <data name="UNKNOWN_ERROR_WORKSPACE" xml:space="preserve">
+    <value>An unknown error occurred in the Workspace API.</value>
   </data>
   <data name="EXTERNAL_INTEGRATION_ERROR" xml:space="preserve">
     <value>External integration error ({0}): {1}</value>

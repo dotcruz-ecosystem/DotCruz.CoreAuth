@@ -3,7 +3,7 @@ using CommonTestUtilities.Repositories.Tokens;
 using CommonTestUtilities.Security;
 using CommonTestUtilities.Services;
 using DotCruz.CoreAuth.Application.Commands.Auth.ActivateAccount;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Interfaces.Data;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Tokens;
@@ -22,7 +22,7 @@ public class ActivateAccountCommandHandlerBuilder
     private IAccessTokenGenerator _accessTokenGenerator = DefaultAccessTokenGenerator();
     private IRefreshTokenGenerator _refreshTokenGenerator = DefaultRefreshTokenGenerator();
     private IRefreshTokenWriteRepository _refreshTokenWriteRepository = new Mock<IRefreshTokenWriteRepository>().Object;
-    private ITenantServiceClient _tenantServiceClient = new TenantServiceClientBuilder().Build();
+    private IWorkspaceServiceClient _workspaceServiceClient = new WorkspaceServiceClientBuilder().Build();
     private IUnitOfWork _unitOfWork = UnitOfWorkBuilder.Build();
     private IOptions<JwtTokenSettings> _jwtTokenSettings = Options.Create(new JwtTokenSettings { RefreshTokenExpirationTimeDays = 7 });
 
@@ -77,9 +77,9 @@ public class ActivateAccountCommandHandlerBuilder
         return this;
     }
 
-    public ActivateAccountCommandHandlerBuilder SetTenantServiceClient(ITenantServiceClient tenantServiceClient)
+    public ActivateAccountCommandHandlerBuilder SetWorkspaceServiceClient(IWorkspaceServiceClient workspaceServiceClient)
     {
-        _tenantServiceClient = tenantServiceClient;
+        _workspaceServiceClient = workspaceServiceClient;
         return this;
     }
 
@@ -98,7 +98,7 @@ public class ActivateAccountCommandHandlerBuilder
             _accessTokenGenerator,
             _refreshTokenGenerator,
             _refreshTokenWriteRepository,
-            _tenantServiceClient,
+            _workspaceServiceClient,
             _unitOfWork,
             _jwtTokenSettings
         );

@@ -17,20 +17,20 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
     private readonly Guid _userId;
     private readonly string _email;
     private readonly string _name;
-    private readonly Guid? _tenantId;
+    private readonly Guid? _workspaceId;
     private readonly string _otherEmail;
     private readonly string _token;
-    private readonly string _tenantUserToken;
+    private readonly string _userToken;
 
     public UpdateUserTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _userId = factory.GetUserId();
         _email = factory.GetEmail();
         _name = factory.GetName();
-        _tenantId = factory.GetTenantId();
+        _workspaceId = factory.GetWorkspaceId();
         _otherEmail = factory.GetPendingUserEmail();
         _token = factory.GetSuperAdminAccessToken();
-        _tenantUserToken = factory.GetTenantUserAccessToken();
+        _userToken = factory.GetUserAccessToken();
     }
 
     [Fact]
@@ -41,14 +41,14 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
         var response = await DoPut(token: _token, 
             method: $"{METHOD}/{_userId}", 
             request: request, 
-            tenantId: _tenantId?.ToString() ?? string.Empty
+            workspaceId: _workspaceId?.ToString() ?? string.Empty
         );
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var getResponse = await DoGet(token: _token, 
             method: $"{METHOD}/{_userId}", 
-            tenantId: _tenantId?.ToString() ?? string.Empty
+            workspaceId: _workspaceId?.ToString() ?? string.Empty
         );
         getResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -69,11 +69,11 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
     }
 
     [Fact]
-    public async Task Error_Forbidden_For_Tenant_User()
+    public async Task Error_Forbidden_For_Standard_User()
     {
         var request = UpdateUserCommandBuilder.Build().Request with { Name = "Updated Name", Email = "updatedemail@example.com" };
 
-        var response = await DoPut(token: _tenantUserToken, method: $"{METHOD}/{_userId}", request: request);
+        var response = await DoPut(token: _userToken, method: $"{METHOD}/{_userId}", request: request);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
@@ -88,7 +88,7 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
             method: $"{METHOD}/{_userId}", 
             request: request, 
             culture: culture,
-            tenantId: _tenantId?.ToString() ?? string.Empty
+            workspaceId: _workspaceId?.ToString() ?? string.Empty
         );
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -110,7 +110,7 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
             method: $"{METHOD}/{_userId}", 
             request: request, 
             culture: culture,
-            tenantId: _tenantId?.ToString() ?? string.Empty
+            workspaceId: _workspaceId?.ToString() ?? string.Empty
         );
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -132,7 +132,7 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
             method: $"{METHOD}/{_userId}", 
             request: request, 
             culture: culture,
-            tenantId: _tenantId?.ToString() ?? string.Empty
+            workspaceId: _workspaceId?.ToString() ?? string.Empty
         );
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -154,7 +154,7 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
             method: $"{METHOD}/{_userId}", 
             request: request, 
             culture: culture,
-            tenantId: _tenantId?.ToString() ?? string.Empty
+            workspaceId: _workspaceId?.ToString() ?? string.Empty
         );
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);

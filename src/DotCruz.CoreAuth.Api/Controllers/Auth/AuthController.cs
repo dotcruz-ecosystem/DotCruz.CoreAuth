@@ -104,7 +104,7 @@ public class AuthController(IMediator mediator) : DotCruzCoreAuthBaseController(
 
     [HttpGet]
     [Route("workspaces")]
-    [ProducesResponseType(typeof(IReadOnlyCollection<DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses.UserWorkspaceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyCollection<DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces.Responses.UserWorkspaceDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetWorkspaces(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new DotCruz.CoreAuth.Application.Queries.Auth.GetUserWorkspaces.GetUserWorkspacesQuery(), cancellationToken);

@@ -171,9 +171,9 @@ namespace DotCruz.CoreAuth.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<Guid?>("DefaultTenantId")
+                    b.Property<Guid?>("DefaultWorkspaceId")
                         .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
+                        .HasColumnName("workspace_id");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")

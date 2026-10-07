@@ -56,13 +56,13 @@ namespace Command.Test.Auth.Login
         [Fact]
         public async Task Success_With_Workspaces()
         {
-            var preferredTenantId = Guid.NewGuid();
-            var command = new LoginCommand("collab@dotcruz.com", "Password123!", preferredTenantId);
+            var preferredWorkspaceId = Guid.NewGuid();
+            var command = new LoginCommand("collab@dotcruz.com", "Password123!", preferredWorkspaceId);
             var user = UserBuilder.Build(email: command.Email);
 
             var workspace = UserWorkspaceDtoBuilder.Build(
-                tenantId: preferredTenantId,
-                tenantType: "Personal",
+                workspaceId: preferredWorkspaceId,
+                workspaceType: "Personal",
                 role: "Member",
                 memberStatus: "Active",
                 plan: "Free");
@@ -75,13 +75,13 @@ namespace Command.Test.Auth.Login
                 .SetupVerifyPassword(true)
                 .Build();
 
-            var tenantServiceClient = new TenantServiceClientBuilder()
+            var workspaceServiceClient = new WorkspaceServiceClientBuilder()
                 .SetupGetUserWorkspaces(user.Id, [workspace])
                 .Build();
 
             var accessTokenGenerator = new Mock<IAccessTokenGenerator>();
             accessTokenGenerator
-                .Setup(a => a.Generate(user, "Personal", "Free", preferredTenantId, "Member"))
+                .Setup(a => a.Generate(user, "Personal", "Free", preferredWorkspaceId, "Member"))
                 .Returns("preferred-access-token");
 
             var refreshTokenGenerator = new Mock<IRefreshTokenGenerator>();
@@ -90,7 +90,7 @@ namespace Command.Test.Auth.Login
             var handler = new LoginCommandHandlerBuilder()
                 .SetUserReadRepository(userReadRepository)
                 .SetPasswordHasher(passwordHasher)
-                .SetTenantServiceClient(tenantServiceClient)
+                .SetWorkspaceServiceClient(workspaceServiceClient)
                 .SetAccessTokenGenerator(accessTokenGenerator.Object)
                 .SetRefreshTokenGenerator(refreshTokenGenerator.Object)
                 .Build();
@@ -99,9 +99,9 @@ namespace Command.Test.Auth.Login
 
             Assert.NotNull(result);
             Assert.Equal("preferred-access-token", result.Tokens.AccessToken);
-            Assert.NotNull(result.Tenant);
-            Assert.Equal(preferredTenantId, result.Tenant.Id);
-            Assert.Equal("Member", result.Tenant.Role);
+            Assert.NotNull(result.Workspace);
+            Assert.Equal(preferredWorkspaceId, result.Workspace.Id);
+            Assert.Equal("Member", result.Workspace.Role);
             Assert.Single(result.Workspaces!);
         }
 

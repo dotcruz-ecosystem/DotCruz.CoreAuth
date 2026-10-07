@@ -4,10 +4,10 @@ namespace CommonTestUtilities.Requests.Auth;
 
 public class SwitchWorkspaceCommandBuilder
 {
-    public static SwitchWorkspaceCommand Build(Guid? targetTenantId = null, bool isEmptyTenantId = false)
+    public static SwitchWorkspaceCommand Build(Guid? targetWorkspaceId = null, bool isEmptyWorkspaceId = false)
     {
         return new SwitchWorkspaceCommand(
-            isEmptyTenantId ? Guid.Empty : (targetTenantId ?? Guid.NewGuid())
+            isEmptyWorkspaceId ? Guid.Empty : (targetWorkspaceId ?? Guid.NewGuid())
         );
     }
 }

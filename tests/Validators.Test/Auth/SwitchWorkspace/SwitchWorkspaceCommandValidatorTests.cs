@@ -17,9 +17,9 @@ public class SwitchWorkspaceCommandValidatorTests
     }
 
     [Fact]
-    public void Error_TargetTenantId_Empty()
+    public void Error_TargetWorkspaceId_Empty()
     {
-        var command = SwitchWorkspaceCommandBuilder.Build(isEmptyTenantId: true);
+        var command = SwitchWorkspaceCommandBuilder.Build(isEmptyWorkspaceId: true);
 
         var result = new SwitchWorkspaceCommandValidator().Validate(command);
 

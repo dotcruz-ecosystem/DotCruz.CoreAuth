@@ -18,7 +18,7 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
     private readonly Guid _userId;
     private readonly string _email;
     private readonly string _password;
-    private readonly Guid _tenantId;
+    private readonly Guid _workspaceId;
     private readonly string _token;
 
     public ChangePasswordTest(CustomWebApplicationFactory factory) : base(factory)
@@ -27,7 +27,7 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
         _userId = factory.GetUserId();
         _email = factory.GetEmail();
         _password = factory.GetPassword();
-        _tenantId = factory.GetTenantId().GetValueOrDefault();
+        _workspaceId = factory.GetWorkspaceId().GetValueOrDefault();
         _token = factory.GetAccessToken();
     }
 
@@ -39,12 +39,12 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
             NewPassword: "NewStrongPassword123!"
         );
 
-        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: _token, tenantId: _tenantId.ToString());
+        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: _token, workspaceId: _workspaceId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var loginCommand = LoginCommandBuilder.Build() with { Email = _email, Password = "NewStrongPassword123!" };
-        var loginResponse = await DoPost(method: "api/auth/login", request: loginCommand, tenantId: _tenantId.ToString());
+        var loginResponse = await DoPost(method: "api/auth/login", request: loginCommand, workspaceId: _workspaceId.ToString());
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -57,7 +57,7 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
             NewPassword: "NewStrongPassword123!"
         );
 
-        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: _token, culture: culture, tenantId: _tenantId.ToString());
+        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: _token, culture: culture, workspaceId: _workspaceId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
 
@@ -77,7 +77,7 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
             NewPassword: string.Empty
         );
 
-        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: _token, culture: culture, tenantId: _tenantId.ToString());
+        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: _token, culture: culture, workspaceId: _workspaceId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -97,7 +97,7 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
             NewPassword: "short"
         );
 
-        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: _token, culture: culture, tenantId: _tenantId.ToString());
+        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: _token, culture: culture, workspaceId: _workspaceId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -121,7 +121,7 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
             NewPassword: "NewStrongPassword123!"
         );
 
-        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: fakeToken, culture: culture, tenantId: nonExistentUser.TenantId.ToString());
+        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: fakeToken, culture: culture, workspaceId: nonExistentUser.WorkspaceId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 

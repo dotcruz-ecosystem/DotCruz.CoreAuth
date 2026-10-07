@@ -57,11 +57,11 @@ public class UserTest
     [Fact]
     public void Success_On_Update()
     {
-        var user = UserBuilder.Build(type: UserType.TenantUser);
+        var user = UserBuilder.Build(type: UserType.User);
 
-        var newData = UserBuilder.Build(type: UserType.TenantUser);
+        var newData = UserBuilder.Build(type: UserType.User);
 
-        user.Update(newData.Name, newData.Email, newData.PasswordHash, newData.Type, newData.TenantId);
+        user.Update(newData.Name, newData.Email, newData.PasswordHash, newData.Type, newData.WorkspaceId);
 
         user.Name.Should().Be(newData.Name);
         user.Email.Should().Be(newData.Email);
@@ -145,34 +145,34 @@ public class UserTest
     }
 
     [Fact]
-    public void Success_On_Create_Without_TenantId()
+    public void Success_On_Create_Without_WorkspaceId()
     {
-        var user = new User("Nome", "email@teste.com", UserType.TenantUser, Guid.Empty);
+        var user = new User("Nome", "email@teste.com", UserType.User, Guid.Empty);
 
         user.Should().NotBeNull();
-        user.DefaultTenantId.Should().BeNull();
-        user.TenantId.Should().Be(Guid.Empty);
+        user.DefaultWorkspaceId.Should().BeNull();
+        user.WorkspaceId.Should().Be(Guid.Empty);
     }
 
     [Fact]
-    public void Success_On_Create_With_TenantId()
+    public void Success_On_Create_With_WorkspaceId()
     {
-        var tenantId = Guid.NewGuid();
-        var user = new User("Nome", "email@teste.com", UserType.TenantUser, tenantId);
+        var workspaceId = Guid.NewGuid();
+        var user = new User("Nome", "email@teste.com", UserType.User, workspaceId);
 
         user.Should().NotBeNull();
-        user.TenantId.Should().Be(tenantId);
+        user.WorkspaceId.Should().Be(workspaceId);
     }
 
     [Fact]
-    public void Success_On_Update_To_Global_Clears_TenantId()
+    public void Success_On_Update_To_Global_Clears_WorkspaceId()
     {
-        var tenantId = Guid.NewGuid();
-        var user = new User("Nome", "email@teste.com", UserType.TenantUser, tenantId);
+        var workspaceId = Guid.NewGuid();
+        var user = new User("Nome", "email@teste.com", UserType.User, workspaceId);
 
         user.Update(null, null, null, UserType.SuperAdmin, Guid.Empty);
 
-        user.TenantId.Should().Be(Guid.Empty);
+        user.WorkspaceId.Should().Be(Guid.Empty);
     }
 
     [Fact]

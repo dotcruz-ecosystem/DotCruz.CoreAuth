@@ -1,5 +1,5 @@
 using DotCruz.CoreAuth.Application.Commands.Auth.Login;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
@@ -16,7 +16,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.SwitchWorkspace;
 public class SwitchWorkspaceCommandHandler : IRequestHandler<SwitchWorkspaceCommand, ResponseLoginDto>
 {
     private readonly ILoggedUser _loggedUser;
-    private readonly ITenantServiceClient _tenantServiceClient;
+    private readonly IWorkspaceServiceClient _workspaceServiceClient;
     private readonly IAccessTokenGenerator _accessTokenGenerator;
     private readonly IRefreshTokenGenerator _refreshTokenGenerator;
     private readonly IRefreshTokenWriteRepository _refreshTokenWriteRepository;
@@ -26,7 +26,7 @@ public class SwitchWorkspaceCommandHandler : IRequestHandler<SwitchWorkspaceComm
 
     public SwitchWorkspaceCommandHandler(
         ILoggedUser loggedUser,
-        ITenantServiceClient tenantServiceClient,
+        IWorkspaceServiceClient workspaceServiceClient,
         IAccessTokenGenerator accessTokenGenerator,
         IRefreshTokenGenerator refreshTokenGenerator,
         IRefreshTokenWriteRepository refreshTokenWriteRepository,
@@ -35,7 +35,7 @@ public class SwitchWorkspaceCommandHandler : IRequestHandler<SwitchWorkspaceComm
         IOptions<JwtTokenSettings> jwtTokenSettings)
     {
         _loggedUser = loggedUser;
-        _tenantServiceClient = tenantServiceClient;
+        _workspaceServiceClient = workspaceServiceClient;
         _accessTokenGenerator = accessTokenGenerator;
         _refreshTokenGenerator = refreshTokenGenerator;
         _refreshTokenWriteRepository = refreshTokenWriteRepository;
@@ -48,9 +48,9 @@ public class SwitchWorkspaceCommandHandler : IRequestHandler<SwitchWorkspaceComm
     {
         var user = await _loggedUser.User(cancellationToken);
 
-        var workspaces = await _tenantServiceClient.GetUserWorkspacesAsync(user.Id, cancellationToken);
+        var workspaces = await _workspaceServiceClient.GetUserWorkspacesAsync(user.Id, cancellationToken);
 
-        var targetWorkspace = workspaces.FirstOrDefault(w => w.TenantId == request.TargetTenantId)
+        var targetWorkspace = workspaces.FirstOrDefault(w => w.WorkspaceId == request.TargetWorkspaceId)
             ?? throw new NotFoundException(ResourceMessagesException.WORKSPACE_NOT_FOUND);
 
         if (!string.Equals(targetWorkspace.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase))
@@ -58,9 +58,9 @@ public class SwitchWorkspaceCommandHandler : IRequestHandler<SwitchWorkspaceComm
 
         var accessToken = _accessTokenGenerator.Generate(
             user,
-            targetWorkspace.TenantType,
+            targetWorkspace.WorkspaceType,
             targetWorkspace.Plan,
-            targetWorkspace.TenantId,
+            targetWorkspace.WorkspaceId,
             targetWorkspace.Role);
 
         var refreshTokenString = _refreshTokenGenerator.Generate();
@@ -75,11 +75,11 @@ public class SwitchWorkspaceCommandHandler : IRequestHandler<SwitchWorkspaceComm
         await _refreshTokenWriteRepository.AddAsync(refreshToken, cancellationToken);
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        var responseTenant = new ResponseLoginTenantDto(
-            targetWorkspace.TenantId,
-            targetWorkspace.TenantName,
-            targetWorkspace.TenantSlug,
-            targetWorkspace.TenantType,
+        var responseWorkspace = new ResponseLoginWorkspaceDto(
+            targetWorkspace.WorkspaceId,
+            targetWorkspace.WorkspaceName,
+            targetWorkspace.WorkspaceSlug,
+            targetWorkspace.WorkspaceType,
             targetWorkspace.Plan,
             targetWorkspace.Role
         );
@@ -89,7 +89,7 @@ public class SwitchWorkspaceCommandHandler : IRequestHandler<SwitchWorkspaceComm
             user.Name,
             user.Email,
             new ResponseTokensDto(accessToken, refreshTokenString),
-            responseTenant,
+            responseWorkspace,
             workspaces
         );
     }

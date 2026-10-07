@@ -1,5 +1,6 @@
 using DotCruz.CoreAuth.Application.Commands.Auth.Login;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces.Responses;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
@@ -21,7 +22,7 @@ public class ActivateAccountCommandHandler : IRequestHandler<ActivateAccountComm
     private readonly IAccessTokenGenerator _accessTokenGenerator;
     private readonly IRefreshTokenGenerator _refreshTokenGenerator;
     private readonly IRefreshTokenWriteRepository _refreshTokenWriteRepository;
-    private readonly ITenantServiceClient _tenantServiceClient;
+    private readonly IWorkspaceServiceClient _workspaceServiceClient;
     private readonly IUnitOfWork _unitOfWork;
     private readonly JwtTokenSettings _jwtTokenSettings;
 
@@ -32,7 +33,7 @@ public class ActivateAccountCommandHandler : IRequestHandler<ActivateAccountComm
         IAccessTokenGenerator accessTokenGenerator,
         IRefreshTokenGenerator refreshTokenGenerator,
         IRefreshTokenWriteRepository refreshTokenWriteRepository,
-        ITenantServiceClient tenantServiceClient,
+        IWorkspaceServiceClient workspaceServiceClient,
         IUnitOfWork unitOfWork,
         IOptions<JwtTokenSettings> jwtTokenSettings
     )
@@ -43,7 +44,7 @@ public class ActivateAccountCommandHandler : IRequestHandler<ActivateAccountComm
         _accessTokenGenerator = accessTokenGenerator;
         _refreshTokenGenerator = refreshTokenGenerator;
         _refreshTokenWriteRepository = refreshTokenWriteRepository;
-        _tenantServiceClient = tenantServiceClient;
+        _workspaceServiceClient = workspaceServiceClient;
         _unitOfWork = unitOfWork;
         _jwtTokenSettings = jwtTokenSettings.Value;
     }
@@ -63,25 +64,25 @@ public class ActivateAccountCommandHandler : IRequestHandler<ActivateAccountComm
         user.Activate(passwordHash);
         activationToken.Use();
 
-        var workspaces = await _tenantServiceClient.GetUserWorkspacesAsync(user.Id, cancellationToken) ?? [];
+        var workspaces = await _workspaceServiceClient.GetUserWorkspacesAsync(user.Id, cancellationToken) ?? [];
         var activeWorkspace = workspaces.FirstOrDefault(w => string.Equals(w.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase))
             ?? workspaces.FirstOrDefault();
 
-        Guid activeTenantId = activeWorkspace?.TenantId ?? user.DefaultTenantId ?? Guid.Empty;
-        string? activeType = activeWorkspace?.TenantType;
+        Guid activeWorkspaceId = activeWorkspace?.WorkspaceId ?? user.DefaultWorkspaceId ?? Guid.Empty;
+        string? activeType = activeWorkspace?.WorkspaceType;
         string? activePlan = activeWorkspace?.Plan;
         string? activeRole = activeWorkspace?.Role;
 
-        if (user.DefaultTenantId is null && activeTenantId != Guid.Empty)
+        if (user.DefaultWorkspaceId is null && activeWorkspaceId != Guid.Empty)
         {
-            user.SetDefaultTenantId(activeTenantId);
+            user.SetDefaultWorkspaceId(activeWorkspaceId);
         }
 
         var accessToken = _accessTokenGenerator.Generate(
             user,
             activeType,
             activePlan,
-            activeTenantId != Guid.Empty ? activeTenantId : null,
+            activeWorkspaceId != Guid.Empty ? activeWorkspaceId : null,
             activeRole
         );
 
@@ -97,14 +98,14 @@ public class ActivateAccountCommandHandler : IRequestHandler<ActivateAccountComm
         await _refreshTokenWriteRepository.AddAsync(refreshToken, cancellationToken);
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        ResponseLoginTenantDto? responseTenant = null;
+        ResponseLoginWorkspaceDto? responseWorkspace = null;
         if (activeWorkspace != null)
         {
-            responseTenant = new ResponseLoginTenantDto(
-                activeWorkspace.TenantId,
-                activeWorkspace.TenantName,
-                activeWorkspace.TenantSlug,
-                activeWorkspace.TenantType,
+            responseWorkspace = new ResponseLoginWorkspaceDto(
+                activeWorkspace.WorkspaceId,
+                activeWorkspace.WorkspaceName,
+                activeWorkspace.WorkspaceSlug,
+                activeWorkspace.WorkspaceType,
                 activeWorkspace.Plan,
                 activeWorkspace.Role
             );
@@ -115,7 +116,7 @@ public class ActivateAccountCommandHandler : IRequestHandler<ActivateAccountComm
             user.Name,
             user.Email,
             new ResponseTokensDto(accessToken, refreshTokenString),
-            responseTenant,
+            responseWorkspace,
             workspaces
         );
     }

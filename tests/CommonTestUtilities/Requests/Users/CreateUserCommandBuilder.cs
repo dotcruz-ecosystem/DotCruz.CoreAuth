@@ -7,28 +7,28 @@ namespace CommonTestUtilities.Requests.Users;
 
 public class CreateUserCommandBuilder
 {
-    public static CreateUserCommand Build(Guid? tenantId = null)
+    public static CreateUserCommand Build(Guid? workspaceId = null)
     {
         return new Faker<CreateUserCommand>()
             .CustomInstantiator(f =>
             {
                 var type = f.PickRandom<UserType>();
-                Guid resolvedTenantId;
+                Guid resolvedWorkspaceId;
 
                 if (type == UserType.SuperAdmin || type == UserType.InternalSupport)
                 {
-                    resolvedTenantId = Guid.Empty;
+                    resolvedWorkspaceId = Guid.Empty;
                 }
                 else
                 {
-                    resolvedTenantId = tenantId ?? Guid.NewGuid();
+                    resolvedWorkspaceId = workspaceId ?? Guid.NewGuid();
                 }
 
                 return new CreateUserCommand(
                     f.Person.FullName,
                     f.Internet.Email(f.Person.FirstName),
                     type,
-                    resolvedTenantId
+                    resolvedWorkspaceId
                 );
             });
     }

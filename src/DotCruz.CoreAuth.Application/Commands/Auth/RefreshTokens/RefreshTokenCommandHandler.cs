@@ -1,5 +1,5 @@
 using DotCruz.CoreAuth.Application.Commands.Auth.Login;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Enums.Users;
@@ -20,7 +20,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
     private readonly IAccessTokenGenerator _accessTokenGenerator;
     private readonly IRefreshTokenGenerator _refreshTokenGenerator;
     private readonly ITokenProvider _tokenProvider;
-    private readonly ITenantServiceClient _tenantServiceClient;
+    private readonly IWorkspaceServiceClient _workspaceServiceClient;
     private IUnitOfWork _unitOfWork;
     private readonly JwtTokenSettings _jwtTokenSettings;
 
@@ -30,7 +30,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         IAccessTokenGenerator accessTokenGenerator,
         IRefreshTokenGenerator refreshTokenGenerator,
         ITokenProvider tokenProvider,
-        ITenantServiceClient tenantServiceClient,
+        IWorkspaceServiceClient workspaceServiceClient,
         IUnitOfWork unitOfWork,
         IOptions<JwtTokenSettings> jwtTokenSettings
     )
@@ -40,7 +40,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         _accessTokenGenerator = accessTokenGenerator;
         _refreshTokenGenerator = refreshTokenGenerator;
         _tokenProvider = tokenProvider;
-        _tenantServiceClient = tenantServiceClient;
+        _workspaceServiceClient = workspaceServiceClient;
         _unitOfWork = unitOfWork;
         _jwtTokenSettings = jwtTokenSettings.Value;
     }
@@ -62,9 +62,9 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         refreshToken!.Revoke();
 
-        var tenantSummary = await _tenantServiceClient.GetTenantSummaryAsync(refreshToken.User!.TenantId, cancellationToken);
+        var workspaceSummary = await _workspaceServiceClient.GetWorkspaceSummaryAsync(refreshToken.User!.WorkspaceId, cancellationToken);
 
-        var newAccessToken = _accessTokenGenerator.Generate(refreshToken.User!, tenantSummary?.Type, tenantSummary?.Plan);
+        var newAccessToken = _accessTokenGenerator.Generate(refreshToken.User!, workspaceSummary?.Type, workspaceSummary?.Plan);
 
         var newRefreshTokenString = await CreateNewRefreshToken(refreshToken.User!.Id, cancellationToken);
         

@@ -25,12 +25,12 @@ public class SecurityContextBuilder
         return this;
     }
 
-    public SecurityContextBuilder AsUser(UserType type, Guid? tenantId = null)
+    public SecurityContextBuilder AsUser(UserType type, Guid? workspaceId = null)
     {
         _securityContext.Setup(c => c.IsAuthenticatedService).Returns(false);
         _securityContext.Setup(c => c.IsAuthenticatedUser).Returns(true);
         _securityContext.Setup(c => c.UserId).Returns(Guid.NewGuid());
-        _securityContext.Setup(c => c.TenantId).Returns(tenantId ?? Guid.NewGuid());
+        _securityContext.Setup(c => c.WorkspaceId).Returns(workspaceId ?? Guid.NewGuid());
         _securityContext.Setup(c => c.Roles).Returns([type.ToString()]);
 
         return this;

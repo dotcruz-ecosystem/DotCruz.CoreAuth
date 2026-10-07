@@ -14,23 +14,23 @@ public class DeactivateUserTest : DotCruzCoreAuthClassFixture
 
     private readonly Guid _userId;
     private readonly string _token;
-    private readonly Guid _tenantId;
+    private readonly Guid _workspaceId;
 
     public DeactivateUserTest(CustomWebApplicationFactory factory) : base(factory)
     {
         _userId = factory.GetUserId();
         _token = factory.GetSuperAdminAccessToken();
-        _tenantId = factory.GetTenantId().GetValueOrDefault();
+        _workspaceId = factory.GetWorkspaceId().GetValueOrDefault();
     }
 
     [Fact]
     public async Task Success()
     {
-        var response = await DoDelete(token: _token, method: $"{METHOD}/{_userId}", tenantId: _tenantId.ToString());
+        var response = await DoDelete(token: _token, method: $"{METHOD}/{_userId}", workspaceId: _workspaceId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        var getResponse = await DoGet(token: _token, method: $"{METHOD}/{_userId}", tenantId: _tenantId.ToString());
+        var getResponse = await DoGet(token: _token, method: $"{METHOD}/{_userId}", workspaceId: _workspaceId.ToString());
         getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 

@@ -20,18 +20,18 @@ namespace DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Generator
 
         public string Generate(
             User user, 
-            string? tenantType = null, 
-            string? tenantPlan = null, 
-            Guid? activeTenantId = null, 
+            string? workspaceType = null, 
+            string? workspacePlan = null, 
+            Guid? activeWorkspaceId = null, 
             string? workspaceRole = null)
         {
-            var effectiveTenantId = activeTenantId ?? user.TenantId;
+            var effectiveWorkspaceId = activeWorkspaceId ?? user.WorkspaceId;
 
             var claims = new List<Claim>()
             {
                 new(ClaimTypes.Sid, user.Id.ToString()),
                 new(ClaimTypes.Role, user.Type.ToString()),
-                new(CustomClaimTypes.TenantId, effectiveTenantId.ToString())
+                new(CustomClaimTypes.WorkspaceId, effectiveWorkspaceId.ToString())
             };
 
             if (!string.IsNullOrWhiteSpace(workspaceRole))
@@ -40,11 +40,11 @@ namespace DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Generator
                 claims.Add(new Claim(ClaimTypes.Role, workspaceRole));
             }
 
-            if (!string.IsNullOrWhiteSpace(tenantType))
-                claims.Add(new Claim(CustomClaimTypes.TenantType, tenantType));
+            if (!string.IsNullOrWhiteSpace(workspaceType))
+                claims.Add(new Claim(CustomClaimTypes.WorkspaceType, workspaceType));
 
-            if (!string.IsNullOrWhiteSpace(tenantPlan))
-                claims.Add(new Claim(CustomClaimTypes.TenantPlan, tenantPlan));
+            if (!string.IsNullOrWhiteSpace(workspacePlan))
+                claims.Add(new Claim(CustomClaimTypes.WorkspacePlan, workspacePlan));
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

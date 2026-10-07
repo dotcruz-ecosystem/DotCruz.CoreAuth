@@ -2,13 +2,13 @@ using CommonTestUtilities.Data;
 using CommonTestUtilities.Repositories.Tokens;
 using CommonTestUtilities.Security;
 using DotCruz.CoreAuth.Application.Commands.Auth.RefreshTokens;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Interfaces.Data;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Tokens;
 using DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens;
 using Microsoft.Extensions.Options;
 using Moq;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
 
 namespace CommonTestUtilities.Commands.Auth;
 
@@ -19,7 +19,7 @@ public class RefreshTokenCommandHandlerBuilder
     private IAccessTokenGenerator _accessTokenGenerator = new Mock<IAccessTokenGenerator>().Object;
     private IRefreshTokenGenerator _refreshTokenGenerator = new Mock<IRefreshTokenGenerator>().Object;
     private ITokenProvider _tokenProvider = new TestTokenProvider();
-    private ITenantServiceClient _tenantServiceClient = new Mock<ITenantServiceClient>().Object;
+    private IWorkspaceServiceClient _workspaceServiceClient = new Mock<IWorkspaceServiceClient>().Object;
     private IUnitOfWork _unitOfWork = UnitOfWorkBuilder.Build();
     private IOptions<JwtTokenSettings> _jwtTokenSettings = Options.Create(new JwtTokenSettings { RefreshTokenExpirationTimeDays = 7 });
 
@@ -53,9 +53,9 @@ public class RefreshTokenCommandHandlerBuilder
         return this;
     }
 
-    public RefreshTokenCommandHandlerBuilder SetTenantServiceClient(ITenantServiceClient tenantServiceClient)
+    public RefreshTokenCommandHandlerBuilder SetWorkspaceServiceClient(IWorkspaceServiceClient workspaceServiceClient)
     {
-        _tenantServiceClient = tenantServiceClient;
+        _workspaceServiceClient = workspaceServiceClient;
         return this;
     }
 
@@ -79,7 +79,7 @@ public class RefreshTokenCommandHandlerBuilder
             _accessTokenGenerator,
             _refreshTokenGenerator,
             _tokenProvider,
-            _tenantServiceClient,
+            _workspaceServiceClient,
             _unitOfWork,
             _jwtTokenSettings
         );

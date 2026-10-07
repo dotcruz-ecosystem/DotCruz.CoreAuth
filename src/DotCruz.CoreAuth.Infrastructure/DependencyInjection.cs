@@ -1,6 +1,6 @@
 using DotCruz.CoreAuth.Application.Interfaces.Services.Messaging;
 using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Interfaces.Data;
 using DotCruz.CoreAuth.Domain.Interfaces.Repositories.Base;
@@ -21,7 +21,7 @@ using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Refresh;
 using DotCruz.CoreAuth.Infrastructure.Services.LoggedUser;
 using DotCruz.CoreAuth.Infrastructure.Services.Messaging;
 using DotCruz.CoreAuth.Infrastructure.Services.Notification;
-using DotCruz.CoreAuth.Infrastructure.Services.Tenants;
+using DotCruz.CoreAuth.Infrastructure.Services.Workspaces;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -86,10 +86,12 @@ public static class DependencyInjection
             })
             .AddServiceApiKeyPropagation();
 
-            services.AddHttpClient<ITenantServiceClient, TenantServiceClient>(client =>
+            services.AddHttpClient<IWorkspaceServiceClient, WorkspaceServiceClient>(client =>
             {
-                var tenantsBaseUrl = configuration.GetValue<string>("Settings:Tenant:BaseUrl") ?? "http://localhost:5001";
-                client.BaseAddress = new Uri(tenantsBaseUrl);
+                var workspacesBaseUrl = configuration.GetValue<string>("Settings:Workspace:BaseUrl")
+                    ?? configuration.GetValue<string>("Settings:Workspaces:BaseUrl")
+                    ?? "http://localhost:5001";
+                client.BaseAddress = new Uri(workspacesBaseUrl);
             })
             .AddServiceApiKeyPropagation();
 

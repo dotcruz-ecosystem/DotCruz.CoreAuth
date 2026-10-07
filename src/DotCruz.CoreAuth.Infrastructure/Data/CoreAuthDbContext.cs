@@ -9,14 +9,14 @@ namespace DotCruz.CoreAuth.Infrastructure.Data;
 
 public class CoreAuthDbContext(
     DbContextOptions<CoreAuthDbContext> options,
-    ITenantProvider tenantProvider) : DbContext(options)
+    IWorkspaceProvider workspaceProvider) : DbContext(options)
 {
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<ActivationToken> ActivationTokens { get; set; }
 
-    public Guid TenantIdValue => tenantProvider.TenantId ?? Guid.Empty;
+    public Guid WorkspaceIdValue => workspaceProvider.WorkspaceId ?? Guid.Empty;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,15 +36,15 @@ public class CoreAuthDbContext(
                 combinedExpr = Expression.Equal(propertyDeletedAt, nullValue);
             }
 
-            if (typeof(TenantEntity).IsAssignableFrom(entityType.ClrType))
+            if (typeof(WorkspaceEntity).IsAssignableFrom(entityType.ClrType))
             {
-                var propertyTenantId = Expression.Property(parameter, nameof(TenantEntity.TenantId));
-                var providerTenantId = Expression.Property(Expression.Constant(this), nameof(TenantIdValue));
-                var tenantFilterExpr = Expression.Equal(propertyTenantId, providerTenantId);
+                var propertyWorkspaceId = Expression.Property(parameter, nameof(WorkspaceEntity.WorkspaceId));
+                var providerWorkspaceId = Expression.Property(Expression.Constant(this), nameof(WorkspaceIdValue));
+                var workspaceFilterExpr = Expression.Equal(propertyWorkspaceId, providerWorkspaceId);
 
                 combinedExpr = combinedExpr != null 
-                    ? Expression.AndAlso(combinedExpr, tenantFilterExpr) 
-                    : tenantFilterExpr;
+                    ? Expression.AndAlso(combinedExpr, workspaceFilterExpr) 
+                    : workspaceFilterExpr;
             }
 
             if (combinedExpr != null)

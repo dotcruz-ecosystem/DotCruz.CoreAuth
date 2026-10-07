@@ -3,4 +3,4 @@ using MediatR;
 
 namespace DotCruz.CoreAuth.Application.Commands.Auth.SwitchWorkspace;
 
-public sealed record SwitchWorkspaceCommand(Guid TargetTenantId) : IRequest<ResponseLoginDto>;
+public sealed record SwitchWorkspaceCommand(Guid TargetWorkspaceId) : IRequest<ResponseLoginDto>;

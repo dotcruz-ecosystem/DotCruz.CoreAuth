@@ -12,7 +12,7 @@ public class UserBuilder
         string? passwordHashed = null,
         int nameLength = 10,
         int emailLength = 10,
-        Guid? tenantId = null,
+        Guid? workspaceId = null,
         UserStatus status = UserStatus.Active,
         UserType? type = null
     )
@@ -21,22 +21,22 @@ public class UserBuilder
             .CustomInstantiator(f =>
             {
                 var resolvedType = type ?? f.PickRandom<UserType>();
-                Guid resolvedTenantId;
+                Guid resolvedWorkspaceId;
 
                 if (resolvedType == UserType.SuperAdmin || resolvedType == UserType.InternalSupport)
                 {
-                    resolvedTenantId = Guid.Empty;
+                    resolvedWorkspaceId = Guid.Empty;
                 }
                 else
                 {
-                    resolvedTenantId = tenantId ?? Guid.NewGuid();
+                    resolvedWorkspaceId = workspaceId ?? Guid.NewGuid();
                 }
 
                 return new User(
                     name ?? f.Person.FullName.PadRight(nameLength, 'a'),
                     email ?? f.Internet.Email(f.Person.FirstName).PadRight(emailLength, 'a'),
                     resolvedType,
-                    resolvedTenantId
+                    resolvedWorkspaceId
                 );
             });
 

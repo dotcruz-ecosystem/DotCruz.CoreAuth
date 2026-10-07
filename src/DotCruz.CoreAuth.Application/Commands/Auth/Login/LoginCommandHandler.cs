@@ -1,4 +1,5 @@
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces.Responses;
 using DotCruz.CoreAuth.Common.Settings;
 using DotCruz.CoreAuth.Domain.Entities.Tokens;
 using DotCruz.CoreAuth.Domain.Exceptions.BaseExceptions;
@@ -20,7 +21,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
         private readonly IRefreshTokenGenerator _refreshTokenGenerator;
         private readonly IRefreshTokenWriteRepository _refreshTokenWriteRepository;
         private readonly ITokenProvider _tokenProvider;
-        private readonly ITenantServiceClient _tenantServiceClient;
+        private readonly IWorkspaceServiceClient _workspaceServiceClient;
         private readonly IUnitOfWork _unitOfWork;
         private readonly JwtTokenSettings _jwtTokenSettings;
 
@@ -31,7 +32,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
             IRefreshTokenGenerator refreshTokenGenerator,
             IRefreshTokenWriteRepository refreshTokenWriteRepository,
             ITokenProvider tokenProvider,
-            ITenantServiceClient tenantServiceClient,
+            IWorkspaceServiceClient workspaceServiceClient,
             IUnitOfWork unitOfWork,
             IOptions<JwtTokenSettings> jwtTokenSettings)
         {
@@ -41,7 +42,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
             _refreshTokenGenerator = refreshTokenGenerator;
             _refreshTokenWriteRepository = refreshTokenWriteRepository;
             _tokenProvider = tokenProvider;
-            _tenantServiceClient = tenantServiceClient;
+            _workspaceServiceClient = workspaceServiceClient;
             _unitOfWork = unitOfWork;
             _jwtTokenSettings = jwtTokenSettings.Value;
         }
@@ -61,45 +62,45 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
             if (!passwordMatch)
                 throw new InvalidLoginException();
 
-            var workspaces = await _tenantServiceClient.GetUserWorkspacesAsync(user.Id, cancellationToken) ?? [];
+            var workspaces = await _workspaceServiceClient.GetUserWorkspacesAsync(user.Id, cancellationToken) ?? [];
 
-            DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses.UserWorkspaceDto? activeWorkspace = null;
+            UserWorkspaceDto? activeWorkspace = null;
 
-            if (request.PreferredTenantId.HasValue)
+            if (request.PreferredWorkspaceId.HasValue)
             {
                 activeWorkspace = workspaces.FirstOrDefault(w => 
-                    w.TenantId == request.PreferredTenantId.Value && 
+                    w.WorkspaceId == request.PreferredWorkspaceId.Value && 
                     string.Equals(w.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase));
             }
 
             if (activeWorkspace is null && workspaces.Count > 0)
             {
                 activeWorkspace = workspaces.FirstOrDefault(w => 
-                    w.TenantId == user.TenantId && 
+                    w.WorkspaceId == user.WorkspaceId && 
                     string.Equals(w.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase))
                     ?? workspaces.FirstOrDefault(w => 
                     string.Equals(w.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase))
                     ?? workspaces.First();
             }
 
-            Guid activeTenantId = activeWorkspace?.TenantId ?? user.TenantId;
-            string? activeType = activeWorkspace?.TenantType;
+            Guid activeWorkspaceId = activeWorkspace?.WorkspaceId ?? user.WorkspaceId;
+            string? activeType = activeWorkspace?.WorkspaceType;
             string? activePlan = activeWorkspace?.Plan;
             string? activeRole = activeWorkspace?.Role;
 
-            DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses.TenantSummaryDto? tenantSummary = null;
-            if (activeWorkspace is null && activeTenantId != Guid.Empty)
+            WorkspaceSummaryDto? workspaceSummary = null;
+            if (activeWorkspace is null && activeWorkspaceId != Guid.Empty)
             {
-                tenantSummary = await _tenantServiceClient.GetTenantSummaryAsync(activeTenantId, cancellationToken);
-                activeType = tenantSummary?.Type;
-                activePlan = tenantSummary?.Plan;
+                workspaceSummary = await _workspaceServiceClient.GetWorkspaceSummaryAsync(activeWorkspaceId, cancellationToken);
+                activeType = workspaceSummary?.Type;
+                activePlan = workspaceSummary?.Plan;
             }
 
             var accessToken = _accessTokenGenerator.Generate(
                 user, 
                 activeType, 
                 activePlan, 
-                activeTenantId != Guid.Empty && activeTenantId != user.TenantId ? activeTenantId : null, 
+                activeWorkspaceId != Guid.Empty && activeWorkspaceId != user.WorkspaceId ? activeWorkspaceId : null, 
                 activeRole);
 
             var refreshTokenString = _refreshTokenGenerator.Generate();
@@ -115,26 +116,26 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
 
             await _unitOfWork.CommitAsync(cancellationToken);
 
-            ResponseLoginTenantDto? responseTenant = null;
+            ResponseLoginWorkspaceDto? responseWorkspace = null;
             if (activeWorkspace != null)
             {
-                responseTenant = new ResponseLoginTenantDto(
-                    activeWorkspace.TenantId,
-                    activeWorkspace.TenantName,
-                    activeWorkspace.TenantSlug,
-                    activeWorkspace.TenantType,
+                responseWorkspace = new ResponseLoginWorkspaceDto(
+                    activeWorkspace.WorkspaceId,
+                    activeWorkspace.WorkspaceName,
+                    activeWorkspace.WorkspaceSlug,
+                    activeWorkspace.WorkspaceType,
                     activeWorkspace.Plan,
                     activeWorkspace.Role
                 );
             }
-            else if (tenantSummary != null)
+            else if (workspaceSummary != null)
             {
-                responseTenant = new ResponseLoginTenantDto(
-                    tenantSummary.Id,
-                    tenantSummary.Name,
-                    tenantSummary.Slug,
-                    tenantSummary.Type,
-                    tenantSummary.Plan
+                responseWorkspace = new ResponseLoginWorkspaceDto(
+                    workspaceSummary.Id,
+                    workspaceSummary.Name,
+                    workspaceSummary.Slug,
+                    workspaceSummary.Type,
+                    workspaceSummary.Plan
                 );
             }
 
@@ -143,7 +144,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
                 user.Name,
                 user.Email,
                 new ResponseTokensDto(accessToken, refreshTokenString),
-                responseTenant,
+                responseWorkspace,
                 workspaces
             );
         }

@@ -13,8 +13,8 @@ public class User : BaseEntity
     public string? PasswordHash { get; private set; }
     public UserType Type { get; private set; }
     public UserStatus Status { get; private set; }
-    public Guid? DefaultTenantId { get; private set; }
-    public Guid TenantId => DefaultTenantId ?? Guid.Empty;
+    public Guid? DefaultWorkspaceId { get; private set; }
+    public Guid WorkspaceId => DefaultWorkspaceId ?? Guid.Empty;
 
     public bool CanAuthenticate =>
         Status == UserStatus.Active
@@ -26,33 +26,33 @@ public class User : BaseEntity
 
     private User() { }
 
-    public User(string name, string email, UserType type = UserType.TenantUser, Guid? tenantId = null)
+    public User(string name, string email, UserType type = UserType.User, Guid? workspaceId = null)
     {
         Name = name;
         Email = email.ToLowerInvariant();
         Type = type;
         Status = UserStatus.PendingActivation;
-        SetDefaultTenantId(tenantId);
+        SetDefaultWorkspaceId(workspaceId);
 
         Validate();
     }
 
-    public void SetDefaultTenantId(Guid? tenantId)
+    public void SetDefaultWorkspaceId(Guid? workspaceId)
     {
-        DefaultTenantId = tenantId == Guid.Empty ? null : tenantId;
+        DefaultWorkspaceId = workspaceId == Guid.Empty ? null : workspaceId;
     }
 
-    public void SetTenantId(Guid tenantId) => SetDefaultTenantId(tenantId);
+    public void SetWorkspaceId(Guid workspaceId) => SetDefaultWorkspaceId(workspaceId);
 
-    public void Update(string? name, string? email, string? passwordHash, UserType? type, Guid? tenantId = null)
+    public void Update(string? name, string? email, string? passwordHash, UserType? type, Guid? workspaceId = null)
     {
         Name = name ?? Name;
         Email = email?.ToLowerInvariant() ?? Email;
         PasswordHash = passwordHash ?? PasswordHash;
         Type = type ?? Type;
 
-        if (tenantId.HasValue)
-            SetDefaultTenantId(tenantId.Value);
+        if (workspaceId.HasValue)
+            SetDefaultWorkspaceId(workspaceId.Value);
 
         Validate();
     }

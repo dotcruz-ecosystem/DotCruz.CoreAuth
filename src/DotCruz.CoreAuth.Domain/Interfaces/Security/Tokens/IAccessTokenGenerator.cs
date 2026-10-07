@@ -6,9 +6,9 @@ namespace DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens
     {
         string Generate(
             User user, 
-            string? tenantType = null, 
-            string? tenantPlan = null, 
-            Guid? activeTenantId = null, 
+            string? workspaceType = null, 
+            string? workspacePlan = null, 
+            Guid? activeWorkspaceId = null, 
             string? workspaceRole = null);
     }
 }

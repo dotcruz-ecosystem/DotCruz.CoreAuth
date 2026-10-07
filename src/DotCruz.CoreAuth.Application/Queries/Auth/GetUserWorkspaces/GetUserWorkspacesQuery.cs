@@ -1,4 +1,4 @@
-using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants.Responses;
+using DotCruz.CoreAuth.Application.Interfaces.Services.Workspaces.Responses;
 using MediatR;
 
 namespace DotCruz.CoreAuth.Application.Queries.Auth.GetUserWorkspaces;

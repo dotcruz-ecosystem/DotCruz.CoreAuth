@@ -41,7 +41,7 @@ public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController
     }
 
     [HttpGet]
-    [Authorize(Policy = SecurityPolicies.TenantAdminOrAdmin)]
+    [Authorize(Policy = SecurityPolicies.WorkspaceAdminOrAdmin)]
     [ProducesResponseType(typeof(PagedResultDto<ResponseUserDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
@@ -53,7 +53,7 @@ public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController
 
     [HttpPut]
     [Route("{Id}")]
-    [Authorize(Policy = SecurityPolicies.TenantAdminOrAdmin)]
+    [Authorize(Policy = SecurityPolicies.WorkspaceAdminOrAdmin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
@@ -77,7 +77,7 @@ public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController
     }
 
     [HttpDelete("{Id}")]
-    [Authorize(Policy = SecurityPolicies.TenantAdminOrAdmin)]
+    [Authorize(Policy = SecurityPolicies.WorkspaceAdminOrAdmin)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Deactivate([FromRoute] Guid Id, CancellationToken cancellationToken)

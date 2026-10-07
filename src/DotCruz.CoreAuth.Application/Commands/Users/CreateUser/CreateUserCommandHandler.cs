@@ -65,19 +65,22 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
         if (_securityContext.IsAuthenticatedService || CallerIsInRole(UserType.SuperAdmin))
             return request;
 
-        if (!CallerIsInRole(UserType.TenantAdmin))
+        if (!CallerIsInRole("Admin") && !CallerIsInRole("Owner"))
             throw new ForbiddenException(ResourceMessagesException.USER_WITHOUT_PERMISSION_ACCESS_RESOURCE);
 
-        if (request.Type is not (UserType.TenantAdmin or UserType.TenantUser))
+        if (request.Type != UserType.User)
             throw new ForbiddenException(ResourceMessagesException.USER_WITHOUT_PERMISSION_ACCESS_RESOURCE);
 
-        var callerTenantId = _securityContext.TenantId ?? Guid.Empty;
+        var callerWorkspaceId = _securityContext.WorkspaceId ?? Guid.Empty;
 
-        if (callerTenantId == Guid.Empty)
-            throw new ForbiddenException(ResourceMessagesException.TENANT_ID_REQUIRED);
+        if (callerWorkspaceId == Guid.Empty)
+            throw new ForbiddenException(ResourceMessagesException.WORKSPACE_ID_REQUIRED);
 
-        return request with { TenantId = callerTenantId };
+        return request with { WorkspaceId = callerWorkspaceId };
     }
+
+    private bool CallerIsInRole(string role) =>
+        _securityContext.Roles.Contains(role, StringComparer.OrdinalIgnoreCase);
 
     private bool CallerIsInRole(UserType type) =>
         _securityContext.Roles.Contains(type.ToString(), StringComparer.OrdinalIgnoreCase);
@@ -94,7 +97,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
             request.Name,
             request.Email,
             request.Type,
-            request.TenantId
+            request.WorkspaceId
         );
 
         await _userWriteRepository.AddAsync(user, cancellationToken);

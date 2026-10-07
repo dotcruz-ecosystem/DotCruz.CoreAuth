@@ -10,15 +10,15 @@ public class CreateUserAuthorizationTest : DotCruzCoreAuthClassFixture
 {
     private readonly string METHOD = "api/users";
 
-    private readonly string _tenantUserToken;
+    private readonly string _userToken;
     private readonly string _superAdminToken;
-    private readonly Guid _tenantId;
+    private readonly Guid _workspaceId;
 
     public CreateUserAuthorizationTest(CustomWebApplicationFactory factory) : base(factory)
     {
-        _tenantUserToken = factory.GetTenantUserAccessToken();
+        _userToken = factory.GetUserAccessToken();
         _superAdminToken = factory.GetSuperAdminAccessToken();
-        _tenantId = factory.GetTenantId().GetValueOrDefault();
+        _workspaceId = factory.GetWorkspaceId().GetValueOrDefault();
     }
 
     [Fact]
@@ -32,11 +32,11 @@ public class CreateUserAuthorizationTest : DotCruzCoreAuthClassFixture
     }
 
     [Fact]
-    public async Task Error_Tenant_User_Cannot_Create_Any_User()
+    public async Task Error_Standard_User_Cannot_Create_Any_User()
     {
-        var command = CreateUserCommandBuilder.Build() with { Type = UserType.TenantUser, TenantId = _tenantId };
+        var command = CreateUserCommandBuilder.Build() with { Type = UserType.User, WorkspaceId = _workspaceId };
 
-        var response = await DoPost(method: METHOD, request: command, token: _tenantUserToken);
+        var response = await DoPost(method: METHOD, request: command, token: _userToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
@@ -44,11 +44,11 @@ public class CreateUserAuthorizationTest : DotCruzCoreAuthClassFixture
     [Theory]
     [InlineData(UserType.SuperAdmin)]
     [InlineData(UserType.InternalSupport)]
-    public async Task Error_Tenant_User_Cannot_Escalate_To(UserType elevatedType)
+    public async Task Error_Standard_User_Cannot_Escalate_To(UserType elevatedType)
     {
-        var command = CreateUserCommandBuilder.Build() with { Type = elevatedType, TenantId = _tenantId };
+        var command = CreateUserCommandBuilder.Build() with { Type = elevatedType, WorkspaceId = _workspaceId };
 
-        var response = await DoPost(method: METHOD, request: command, token: _tenantUserToken);
+        var response = await DoPost(method: METHOD, request: command, token: _userToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
@@ -56,7 +56,7 @@ public class CreateUserAuthorizationTest : DotCruzCoreAuthClassFixture
     [Fact]
     public async Task Success_Super_Admin_Creates_Elevated_User()
     {
-        var command = CreateUserCommandBuilder.Build() with { Type = UserType.TenantAdmin, TenantId = _tenantId };
+        var command = CreateUserCommandBuilder.Build() with { Type = UserType.InternalSupport, WorkspaceId = _workspaceId };
 
         var response = await DoPost(method: METHOD, request: command, token: _superAdminToken);
 
