@@ -145,13 +145,13 @@ public class UserTest
     }
 
     [Fact]
-    public void Error_TenantId_Empty_For_TenantUser()
+    public void Success_On_Create_Without_TenantId()
     {
-        Action act = () => new User("Nome", "email@teste.com", UserType.TenantUser, Guid.Empty);
+        var user = new User("Nome", "email@teste.com", UserType.TenantUser, Guid.Empty);
 
-        act.Should().Throw<ErrorOnValidationException>()
-            .And.GetErrorsMessages().Should().Contain(ResourceMessagesException.TENANT_ID_REQUIRED)
-            .And.HaveCount(1);
+        user.Should().NotBeNull();
+        user.DefaultTenantId.Should().BeNull();
+        user.TenantId.Should().Be(Guid.Empty);
     }
 
     [Fact]

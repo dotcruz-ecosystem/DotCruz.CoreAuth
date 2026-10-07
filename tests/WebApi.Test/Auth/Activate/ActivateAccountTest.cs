@@ -31,7 +31,7 @@ public class ActivateAccountTest : DotCruzCoreAuthClassFixture
 
         var response = await DoPost(method: METHOD, request: command, tenantId: _tenantId);
 
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify that the user is now active by attempting to login with new password
         var loginCommand = new DotCruz.CoreAuth.Application.Commands.Auth.Login.LoginCommand(_pendingEmail, "NewStrongPassword123!");

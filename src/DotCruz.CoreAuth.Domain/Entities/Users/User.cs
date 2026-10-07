@@ -6,13 +6,15 @@ using DotCruz.CoreAuth.Domain.Exceptions.Resources;
 
 namespace DotCruz.CoreAuth.Domain.Entities.Users;
 
-public class User : TenantEntity
+public class User : BaseEntity
 {
     public string Name { get; private set; }
     public string Email { get; private set; }
     public string? PasswordHash { get; private set; }
     public UserType Type { get; private set; }
     public UserStatus Status { get; private set; }
+    public Guid? DefaultTenantId { get; private set; }
+    public Guid TenantId => DefaultTenantId ?? Guid.Empty;
 
     public bool CanAuthenticate =>
         Status == UserStatus.Active
@@ -24,16 +26,23 @@ public class User : TenantEntity
 
     private User() { }
 
-    public User(string name, string email, UserType type, Guid tenantId)
+    public User(string name, string email, UserType type = UserType.TenantUser, Guid? tenantId = null)
     {
         Name = name;
         Email = email.ToLowerInvariant();
         Type = type;
         Status = UserStatus.PendingActivation;
-        SetTenantId(tenantId);
+        SetDefaultTenantId(tenantId);
 
         Validate();
     }
+
+    public void SetDefaultTenantId(Guid? tenantId)
+    {
+        DefaultTenantId = tenantId == Guid.Empty ? null : tenantId;
+    }
+
+    public void SetTenantId(Guid tenantId) => SetDefaultTenantId(tenantId);
 
     public void Update(string? name, string? email, string? passwordHash, UserType? type, Guid? tenantId = null)
     {
@@ -42,8 +51,8 @@ public class User : TenantEntity
         PasswordHash = passwordHash ?? PasswordHash;
         Type = type ?? Type;
 
-        if (Type == UserType.SuperAdmin || Type == UserType.InternalSupport)
-            SetTenantId(tenantId ?? TenantId);
+        if (tenantId.HasValue)
+            SetDefaultTenantId(tenantId.Value);
 
         Validate();
     }
@@ -83,9 +92,6 @@ public class User : TenantEntity
 
         if (Status != UserStatus.PendingActivation && string.IsNullOrEmpty(PasswordHash))
             errors.Add(ResourceMessagesException.PASSWORD_EMPTY);
-
-        if ((Type == UserType.TenantAdmin || Type == UserType.TenantUser) && TenantId == Guid.Empty)
-            errors.Add(ResourceMessagesException.TENANT_ID_REQUIRED);
 
         if (errors.Count > 0)
             throw new ErrorOnValidationException(errors);

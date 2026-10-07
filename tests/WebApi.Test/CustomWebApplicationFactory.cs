@@ -60,6 +60,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("Settings__Tenant__BaseUrl", "https://localhost:5002");
         Environment.SetEnvironmentVariable("Settings__ServiceAuth__Self__Name", "test-service");
         Environment.SetEnvironmentVariable("Settings__ServiceAuth__Self__Key", "test-service-key");
+        Environment.SetEnvironmentVariable("Settings__WorkspaceMessaging__UseInMemory", "true");
 
         builder.UseEnvironment("Test")
             .ConfigureServices(services =>
@@ -146,6 +147,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     .ReturnsAsync((Guid id, CancellationToken _) => new TenantSummaryDto(id, "Test Tenant", "test-tenant", "Active", "Standard", "Pro"));
 
                 services.AddScoped(_ => tenantServiceMock.Object);
+
+                var publisherDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DotCruz.CoreAuth.Application.Interfaces.Services.Messaging.IWorkspaceProvisioningPublisher));
+                if (publisherDescriptor is not null)
+                    services.Remove(publisherDescriptor);
+
+                services.AddScoped(_ => WorkspaceProvisioningPublisherBuilder.Build());
 
                 using var scope = services.BuildServiceProvider().CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<CoreAuthDbContext>();

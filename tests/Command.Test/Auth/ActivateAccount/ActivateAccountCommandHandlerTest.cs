@@ -34,7 +34,7 @@ public class ActivateAccountCommandHandlerTest
             .Build();
 
         var tokenProvider = new Mock<ITokenProvider>();
-        tokenProvider.Setup(t => t.Hash(command.Token)).Returns("hashed-token");
+        tokenProvider.Setup(t => t.Hash(It.IsAny<string>())).Returns("hashed-token");
 
         var passwordHasher = new Mock<IPasswordHasher>();
         passwordHasher.Setup(p => p.HashPassword(command.Password)).Returns("hashed-new-password");
@@ -45,8 +45,10 @@ public class ActivateAccountCommandHandlerTest
             .SetPasswordHasher(passwordHasher.Object)
             .Build();
 
-        await handler.Handle(command, TestContext.Current.CancellationToken);
+        var result = await handler.Handle(command, TestContext.Current.CancellationToken);
 
+        result.Should().NotBeNull();
+        result.Id.Should().Be(user.Id);
         user.Status.Should().Be(UserStatus.Active);
         user.PasswordHash.Should().Be("hashed-new-password");
         token.IsUsed.Should().BeTrue();

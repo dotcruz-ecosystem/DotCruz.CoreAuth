@@ -1,3 +1,4 @@
+using DotCruz.CoreAuth.Application.Interfaces.Services.Messaging;
 using DotCruz.CoreAuth.Application.Interfaces.Services.Notification;
 using DotCruz.CoreAuth.Application.Interfaces.Services.Tenants;
 using DotCruz.CoreAuth.Common.Settings;
@@ -18,8 +19,10 @@ using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Validator;
 using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Jwks;
 using DotCruz.CoreAuth.Infrastructure.Security.Tokens.Refresh;
 using DotCruz.CoreAuth.Infrastructure.Services.LoggedUser;
+using DotCruz.CoreAuth.Infrastructure.Services.Messaging;
 using DotCruz.CoreAuth.Infrastructure.Services.Notification;
 using DotCruz.CoreAuth.Infrastructure.Services.Tenants;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -85,10 +88,39 @@ public static class DependencyInjection
 
             services.AddHttpClient<ITenantServiceClient, TenantServiceClient>(client =>
             {
-                var tenantsBaseUrl = configuration.GetValue<string>("Settings:Tenant:BaseUrl");
+                var tenantsBaseUrl = configuration.GetValue<string>("Settings:Tenant:BaseUrl") ?? "http://localhost:5001";
                 client.BaseAddress = new Uri(tenantsBaseUrl);
             })
             .AddServiceApiKeyPropagation();
+
+            services.Configure<WorkspaceMessagingSettings>(configuration.GetSection("Settings:WorkspaceMessaging"));
+            var messagingSettings = configuration.GetSection("Settings:WorkspaceMessaging").Get<WorkspaceMessagingSettings>() 
+                ?? new WorkspaceMessagingSettings();
+
+            services.AddMassTransit(x =>
+            {
+                if (messagingSettings.UseInMemory)
+                {
+                    x.UsingInMemory((context, cfg) =>
+                    {
+                        cfg.ConfigureEndpoints(context);
+                    });
+                }
+                else
+                {
+                    x.UsingRabbitMq((context, cfg) =>
+                    {
+                        cfg.Host(messagingSettings.Host, messagingSettings.Port, "/", h =>
+                        {
+                            h.Username(messagingSettings.Username);
+                            h.Password(messagingSettings.Password);
+                        });
+                        cfg.ConfigureEndpoints(context);
+                    });
+                }
+            });
+
+            services.AddScoped<IWorkspaceProvisioningPublisher, WorkspaceProvisioningPublisher>();
 
             services.AddScoped<ILoggedUser, LoggedUser>();
         }

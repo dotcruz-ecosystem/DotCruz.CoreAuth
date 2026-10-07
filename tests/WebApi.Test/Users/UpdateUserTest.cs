@@ -21,7 +21,6 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
     private readonly string _otherEmail;
     private readonly string _token;
     private readonly string _tenantUserToken;
-    private readonly string _foreignTenantToken;
 
     public UpdateUserTest(CustomWebApplicationFactory factory) : base(factory)
     {
@@ -32,7 +31,6 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
         _otherEmail = factory.GetPendingUserEmail();
         _token = factory.GetSuperAdminAccessToken();
         _tenantUserToken = factory.GetTenantUserAccessToken();
-        _foreignTenantToken = factory.GenerateSuperAdminTokenForOtherTenant();
     }
 
     [Fact]
@@ -58,20 +56,6 @@ public class UpdateUserTest : DotCruzCoreAuthClassFixture
         using var doc = JsonDocument.Parse(getResponseBody);
         doc.RootElement.GetProperty("name").GetString().Should().Be(request.Name);
         doc.RootElement.GetProperty("email").GetString().Should().Be(request.Email.ToLowerInvariant());
-    }
-
-    [Fact]
-    public async Task Error_Tenant_Isolation_Mismatch()
-    {
-        var request = UpdateUserCommandBuilder.Build().Request with { Name = "Updated Name", Email = "updatedemail@example.com" };
-
-        var response = await DoPut(
-            token: _foreignTenantToken,
-            method: $"{METHOD}/{_userId}",
-            request: request
-        );
-
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
