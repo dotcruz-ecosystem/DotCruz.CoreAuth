@@ -160,14 +160,14 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public string GetPassword() => _password;
     public string GetName() => _user.Name;
     public Guid GetUserId() => _user.Id;
-    public Guid? GetWorkspaceId() => _user.WorkspaceId;
+    public Guid? GetWorkspaceId() => _workspaceId;
     public string GetRefreshToken() => _refreshTokenValue;
 
     public string GenerateAccessToken(User user)
     {
         using var scope = Services.CreateScope();
         var generator = scope.ServiceProvider.GetRequiredService<DotCruz.CoreAuth.Domain.Interfaces.Security.Tokens.IAccessTokenGenerator>();
-        return generator.Generate(user);
+        return generator.Generate(user, activeWorkspaceId: _workspaceId);
     }
 
     public string GetAccessToken()
@@ -193,13 +193,14 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             name: "Foreign Admin",
             email: $"foreign-{Guid.NewGuid():N}@example.com",
             passwordHashed: "irrelevant-for-token-generation",
-            workspaceId: Guid.NewGuid(),
             status: UserStatus.Active,
             type: UserType.SuperAdmin
         );
 
         return GenerateAccessToken(foreignUser);
     }
+
+    private readonly Guid _workspaceId = Guid.NewGuid();
 
     private void StartDatabase(CoreAuthDbContext dbContext)
     {
@@ -211,15 +212,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
             string GenerateStrongPassword() => faker.Internet.Password(12, false, @"[a-zA-Z0-9]") + "1!Aa";
 
-            var workspaceId = Guid.NewGuid();
-
             _password = GenerateStrongPassword();
             var activeUserHash = hasher.HashPassword(_password);
             _user = UserBuilder.Build(
                 name: faker.Person.FullName,
                 email: faker.Internet.Email(),
                 passwordHashed: activeUserHash,
-                workspaceId: workspaceId,
                 status: UserStatus.Active,
                 type: UserType.User
             );
@@ -248,7 +246,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 name: faker.Person.FullName,
                 email: faker.Internet.Email(),
                 passwordHashed: null,
-                workspaceId: workspaceId,
                 status: UserStatus.PendingActivation,
                 type: UserType.User
             );
@@ -270,7 +267,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 name: faker.Person.FullName,
                 email: faker.Internet.Email(),
                 passwordHashed: superAdminHash,
-                workspaceId: Guid.Empty,
                 status: UserStatus.Active,
                 type: UserType.SuperAdmin
             );

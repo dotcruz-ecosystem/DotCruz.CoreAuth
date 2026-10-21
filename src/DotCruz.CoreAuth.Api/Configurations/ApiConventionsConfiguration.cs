@@ -22,6 +22,7 @@ public static class ApiConventionsConfiguration
         {
             options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
             options.SerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.SnakeCaseLower;
+            options.SerializerOptions.PropertyNameCaseInsensitive = true;
         });
 
         return services
@@ -42,6 +43,7 @@ public static class ApiConventionsConfiguration
                 // Body (serialização e desserialização): snake_case.
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
                 options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.SnakeCaseLower;
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
             });
     }
 

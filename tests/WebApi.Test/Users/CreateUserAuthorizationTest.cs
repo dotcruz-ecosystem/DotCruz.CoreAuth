@@ -34,7 +34,7 @@ public class CreateUserAuthorizationTest : DotCruzCoreAuthClassFixture
     [Fact]
     public async Task Error_Standard_User_Cannot_Create_Any_User()
     {
-        var command = CreateUserCommandBuilder.Build() with { Type = UserType.User, WorkspaceId = _workspaceId };
+        var command = CreateUserCommandBuilder.Build() with { Type = UserType.User };
 
         var response = await DoPost(method: METHOD, request: command, token: _userToken);
 
@@ -46,7 +46,7 @@ public class CreateUserAuthorizationTest : DotCruzCoreAuthClassFixture
     [InlineData(UserType.InternalSupport)]
     public async Task Error_Standard_User_Cannot_Escalate_To(UserType elevatedType)
     {
-        var command = CreateUserCommandBuilder.Build() with { Type = elevatedType, WorkspaceId = _workspaceId };
+        var command = CreateUserCommandBuilder.Build() with { Type = elevatedType };
 
         var response = await DoPost(method: METHOD, request: command, token: _userToken);
 
@@ -56,7 +56,7 @@ public class CreateUserAuthorizationTest : DotCruzCoreAuthClassFixture
     [Fact]
     public async Task Success_Super_Admin_Creates_Elevated_User()
     {
-        var command = CreateUserCommandBuilder.Build() with { Type = UserType.InternalSupport, WorkspaceId = _workspaceId };
+        var command = CreateUserCommandBuilder.Build() with { Type = UserType.InternalSupport };
 
         var response = await DoPost(method: METHOD, request: command, token: _superAdminToken);
 

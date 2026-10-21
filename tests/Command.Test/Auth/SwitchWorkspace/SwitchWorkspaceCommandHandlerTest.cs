@@ -20,7 +20,7 @@ public class SwitchWorkspaceCommandHandlerTest
         var user = UserBuilder.Build();
         var targetWorkspaceId = Guid.NewGuid();
 
-        var workspaceA = UserWorkspaceDtoBuilder.Build(workspaceId: user.WorkspaceId, role: "Owner", memberStatus: "Active");
+        var workspaceA = UserWorkspaceDtoBuilder.Build(workspaceId: Guid.NewGuid(), role: "Owner", memberStatus: "Active");
         var workspaceB = UserWorkspaceDtoBuilder.Build(workspaceId: targetWorkspaceId, workspaceType: "Dealership", role: "Admin", memberStatus: "Active", plan: "Pro");
 
         var loggedUser = new LoggedUserBuilder().SetupUser(user).Build();
@@ -60,7 +60,7 @@ public class SwitchWorkspaceCommandHandlerTest
     public async Task Error_Workspace_Not_Found()
     {
         var user = UserBuilder.Build();
-        var workspace = UserWorkspaceDtoBuilder.Build(workspaceId: user.WorkspaceId);
+        var workspace = UserWorkspaceDtoBuilder.Build(workspaceId: Guid.NewGuid());
 
         var loggedUser = new LoggedUserBuilder().SetupUser(user).Build();
         var workspaceServiceClient = new WorkspaceServiceClientBuilder()

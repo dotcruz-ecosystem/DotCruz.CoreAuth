@@ -42,7 +42,7 @@ public class RevokeTokensTest : DotCruzCoreAuthClassFixture
 
         var fakeToken = _factory.GenerateAccessToken(newUser);
 
-        var response = await DoPost(method: "api/auth/revoke-tokens", request: new { }, token: fakeToken, workspaceId: newUser.WorkspaceId.ToString());
+        var response = await DoPost(method: "api/auth/revoke-tokens", request: new { }, token: fakeToken, workspaceId: _factory.GetWorkspaceId().ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }

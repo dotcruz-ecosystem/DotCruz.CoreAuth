@@ -76,22 +76,19 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
             if (activeWorkspace is null && workspaces.Count > 0)
             {
                 activeWorkspace = workspaces.FirstOrDefault(w => 
-                    w.WorkspaceId == user.WorkspaceId && 
-                    string.Equals(w.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase))
-                    ?? workspaces.FirstOrDefault(w => 
                     string.Equals(w.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase))
                     ?? workspaces.First();
             }
 
-            Guid activeWorkspaceId = activeWorkspace?.WorkspaceId ?? user.WorkspaceId;
+            Guid? activeWorkspaceId = activeWorkspace?.WorkspaceId;
             string? activeType = activeWorkspace?.WorkspaceType;
             string? activePlan = activeWorkspace?.Plan;
             string? activeRole = activeWorkspace?.Role;
 
             WorkspaceSummaryDto? workspaceSummary = null;
-            if (activeWorkspace is null && activeWorkspaceId != Guid.Empty)
+            if (activeWorkspace is null && activeWorkspaceId.HasValue && activeWorkspaceId.Value != Guid.Empty)
             {
-                workspaceSummary = await _workspaceServiceClient.GetWorkspaceSummaryAsync(activeWorkspaceId, cancellationToken);
+                workspaceSummary = await _workspaceServiceClient.GetWorkspaceSummaryAsync(activeWorkspaceId.Value, cancellationToken);
                 activeType = workspaceSummary?.Type;
                 activePlan = workspaceSummary?.Plan;
             }
@@ -100,7 +97,7 @@ namespace DotCruz.CoreAuth.Application.Commands.Auth.Login
                 user, 
                 activeType, 
                 activePlan, 
-                activeWorkspaceId != Guid.Empty && activeWorkspaceId != user.WorkspaceId ? activeWorkspaceId : null, 
+                activeWorkspaceId, 
                 activeRole);
 
             var refreshTokenString = _refreshTokenGenerator.Generate();

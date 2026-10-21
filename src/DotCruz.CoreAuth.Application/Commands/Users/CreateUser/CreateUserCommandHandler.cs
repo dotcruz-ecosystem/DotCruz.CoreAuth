@@ -45,7 +45,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
 
     public async Task<Guid> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
-        request = ApplyCallerRestrictions(request);
+        ValidateCallerPermissions(request);
 
         await ValidateEmailExists(request.Email, cancellationToken);
 
@@ -60,23 +60,12 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
         return user.Id;
     }
 
-    private CreateUserCommand ApplyCallerRestrictions(CreateUserCommand request)
+    private void ValidateCallerPermissions(CreateUserCommand request)
     {
-        if (_securityContext.IsAuthenticatedService || CallerIsInRole(UserType.SuperAdmin))
-            return request;
+        if (_securityContext.IsAuthenticatedService || CallerIsInRole(UserType.SuperAdmin) || CallerIsInRole(UserType.InternalSupport))
+            return;
 
-        if (!CallerIsInRole("Admin") && !CallerIsInRole("Owner"))
-            throw new ForbiddenException(ResourceMessagesException.USER_WITHOUT_PERMISSION_ACCESS_RESOURCE);
-
-        if (request.Type != UserType.User)
-            throw new ForbiddenException(ResourceMessagesException.USER_WITHOUT_PERMISSION_ACCESS_RESOURCE);
-
-        var callerWorkspaceId = _securityContext.WorkspaceId ?? Guid.Empty;
-
-        if (callerWorkspaceId == Guid.Empty)
-            throw new ForbiddenException(ResourceMessagesException.WORKSPACE_ID_REQUIRED);
-
-        return request with { WorkspaceId = callerWorkspaceId };
+        throw new ForbiddenException(ResourceMessagesException.USER_WITHOUT_PERMISSION_ACCESS_RESOURCE);
     }
 
     private bool CallerIsInRole(string role) =>
@@ -96,8 +85,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
         var user = new User(
             request.Name,
             request.Email,
-            request.Type,
-            request.WorkspaceId
+            request.Type
         );
 
         await _userWriteRepository.AddAsync(user, cancellationToken);

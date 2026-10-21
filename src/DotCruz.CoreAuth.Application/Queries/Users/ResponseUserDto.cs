@@ -9,6 +9,5 @@ public record ResponseUserDto(
     string Email,
     UserType Type,
     UserStatus Status,
-    Guid? WorkspaceId,
     DateTimeOffset CreatedAt
 );

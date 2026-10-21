@@ -20,7 +20,6 @@ public class GetUsersQueryHandler(IUserReadRepository userReadRepository)
             user.Email,
             user.Type,
             user.Status,
-            user.WorkspaceId,
             user.CreatedAt
         )).ToList();
 

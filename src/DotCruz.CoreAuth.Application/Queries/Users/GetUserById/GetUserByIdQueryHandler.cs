@@ -22,8 +22,7 @@ public class GetUserByIdQueryHandler(IUserReadRepository userReadRepository) : I
             user.Email,
             user.Type,
             user.Status,
-            user.WorkspaceId,
             user.CreatedAt
-);
+        );
     }
 }

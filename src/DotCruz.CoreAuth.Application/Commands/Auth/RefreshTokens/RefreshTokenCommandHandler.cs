@@ -62,9 +62,17 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         refreshToken!.Revoke();
 
-        var workspaceSummary = await _workspaceServiceClient.GetWorkspaceSummaryAsync(refreshToken.User!.WorkspaceId, cancellationToken);
+        var workspaces = await _workspaceServiceClient.GetUserWorkspacesAsync(refreshToken.UserId, cancellationToken) ?? [];
+        var activeWorkspace = workspaces.FirstOrDefault(w => string.Equals(w.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase))
+            ?? workspaces.FirstOrDefault();
 
-        var newAccessToken = _accessTokenGenerator.Generate(refreshToken.User!, workspaceSummary?.Type, workspaceSummary?.Plan);
+        var newAccessToken = _accessTokenGenerator.Generate(
+            refreshToken.User!,
+            activeWorkspace?.WorkspaceType,
+            activeWorkspace?.Plan,
+            activeWorkspace?.WorkspaceId,
+            activeWorkspace?.Role
+        );
 
         var newRefreshTokenString = await CreateNewRefreshToken(refreshToken.User!.Id, cancellationToken);
         

@@ -68,21 +68,16 @@ public class ActivateAccountCommandHandler : IRequestHandler<ActivateAccountComm
         var activeWorkspace = workspaces.FirstOrDefault(w => string.Equals(w.MemberStatus, "Active", StringComparison.OrdinalIgnoreCase))
             ?? workspaces.FirstOrDefault();
 
-        Guid activeWorkspaceId = activeWorkspace?.WorkspaceId ?? user.DefaultWorkspaceId ?? Guid.Empty;
+        Guid? activeWorkspaceId = activeWorkspace?.WorkspaceId;
         string? activeType = activeWorkspace?.WorkspaceType;
         string? activePlan = activeWorkspace?.Plan;
         string? activeRole = activeWorkspace?.Role;
-
-        if (user.DefaultWorkspaceId is null && activeWorkspaceId != Guid.Empty)
-        {
-            user.SetDefaultWorkspaceId(activeWorkspaceId);
-        }
 
         var accessToken = _accessTokenGenerator.Generate(
             user,
             activeType,
             activePlan,
-            activeWorkspaceId != Guid.Empty ? activeWorkspaceId : null,
+            activeWorkspaceId,
             activeRole
         );
 

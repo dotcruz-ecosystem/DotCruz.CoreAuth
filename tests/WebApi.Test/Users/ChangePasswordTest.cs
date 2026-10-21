@@ -121,7 +121,7 @@ public class ChangePasswordTest : DotCruzCoreAuthClassFixture
             NewPassword: "NewStrongPassword123!"
         );
 
-        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: fakeToken, culture: culture, workspaceId: nonExistentUser.WorkspaceId.ToString());
+        var response = await DoPatch(method: $"{METHOD}/change-password", request: request, token: fakeToken, culture: culture, workspaceId: _workspaceId.ToString());
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
 

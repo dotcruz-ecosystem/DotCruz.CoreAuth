@@ -25,26 +25,28 @@ namespace DotCruz.CoreAuth.Infrastructure.Security.Tokens.Access.Generator
             Guid? activeWorkspaceId = null, 
             string? workspaceRole = null)
         {
-            var effectiveWorkspaceId = activeWorkspaceId ?? user.WorkspaceId;
-
             var claims = new List<Claim>()
             {
                 new(ClaimTypes.Sid, user.Id.ToString()),
-                new(ClaimTypes.Role, user.Type.ToString()),
-                new(CustomClaimTypes.WorkspaceId, effectiveWorkspaceId.ToString())
+                new(ClaimTypes.Role, user.Type.ToString())
             };
 
-            if (!string.IsNullOrWhiteSpace(workspaceRole))
+            if (activeWorkspaceId.HasValue && activeWorkspaceId.Value != Guid.Empty)
             {
-                claims.Add(new Claim(CustomClaimTypes.WorkspaceRole, workspaceRole));
-                claims.Add(new Claim(ClaimTypes.Role, workspaceRole));
+                claims.Add(new(CustomClaimTypes.WorkspaceId, activeWorkspaceId.Value.ToString()));
+
+                if (!string.IsNullOrWhiteSpace(workspaceRole))
+                {
+                    claims.Add(new Claim(CustomClaimTypes.WorkspaceRole, workspaceRole));
+                    claims.Add(new Claim(ClaimTypes.Role, workspaceRole));
+                }
+
+                if (!string.IsNullOrWhiteSpace(workspaceType))
+                    claims.Add(new Claim(CustomClaimTypes.WorkspaceType, workspaceType));
+
+                if (!string.IsNullOrWhiteSpace(workspacePlan))
+                    claims.Add(new Claim(CustomClaimTypes.WorkspacePlan, workspacePlan));
             }
-
-            if (!string.IsNullOrWhiteSpace(workspaceType))
-                claims.Add(new Claim(CustomClaimTypes.WorkspaceType, workspaceType));
-
-            if (!string.IsNullOrWhiteSpace(workspacePlan))
-                claims.Add(new Claim(CustomClaimTypes.WorkspacePlan, workspacePlan));
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

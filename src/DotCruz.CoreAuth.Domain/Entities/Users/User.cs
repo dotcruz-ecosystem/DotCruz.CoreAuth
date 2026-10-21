@@ -13,9 +13,6 @@ public class User : BaseEntity
     public string? PasswordHash { get; private set; }
     public UserType Type { get; private set; }
     public UserStatus Status { get; private set; }
-    public Guid? DefaultWorkspaceId { get; private set; }
-    public Guid WorkspaceId => DefaultWorkspaceId ?? Guid.Empty;
-
     public bool CanAuthenticate =>
         Status == UserStatus.Active
         && DeletedAt is null
@@ -26,33 +23,22 @@ public class User : BaseEntity
 
     private User() { }
 
-    public User(string name, string email, UserType type = UserType.User, Guid? workspaceId = null)
+    public User(string name, string email, UserType type = UserType.User)
     {
         Name = name;
         Email = email.ToLowerInvariant();
         Type = type;
         Status = UserStatus.PendingActivation;
-        SetDefaultWorkspaceId(workspaceId);
 
         Validate();
     }
 
-    public void SetDefaultWorkspaceId(Guid? workspaceId)
-    {
-        DefaultWorkspaceId = workspaceId == Guid.Empty ? null : workspaceId;
-    }
-
-    public void SetWorkspaceId(Guid workspaceId) => SetDefaultWorkspaceId(workspaceId);
-
-    public void Update(string? name, string? email, string? passwordHash, UserType? type, Guid? workspaceId = null)
+    public void Update(string? name, string? email, string? passwordHash, UserType? type)
     {
         Name = name ?? Name;
         Email = email?.ToLowerInvariant() ?? Email;
         PasswordHash = passwordHash ?? PasswordHash;
         Type = type ?? Type;
-
-        if (workspaceId.HasValue)
-            SetDefaultWorkspaceId(workspaceId.Value);
 
         Validate();
     }

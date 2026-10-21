@@ -7,5 +7,4 @@ namespace DotCruz.CoreAuth.Application.Commands.Users.CreateUser;
 public record CreateUserCommand(
     string Name,
     string Email,
-    UserType Type,
-    Guid WorkspaceId) : IRequest<Guid>;
+    UserType Type) : IRequest<Guid>;

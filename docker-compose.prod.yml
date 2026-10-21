@@ -23,6 +23,10 @@ services:
       - Settings__Jwt__RefreshTokenExpirationTimeDays=${JWT_REFRESH_EXPIRATION_DAYS}
       - Settings__PasswordResetTokenSettings__ExpirationTimeInMinutes=${PASSWORD_RESET_EXPIRATION_MINUTES}
       - Settings__FrontendUrl=${FRONTEND_URL}
+      - Settings__WorkspaceMessaging__Host=${RABBITMQ_HOST:-dotcruz-rabbitmq}
+      - Settings__WorkspaceMessaging__Port=${RABBITMQ_PORT:-5672}
+      - Settings__WorkspaceMessaging__Username=${RABBITMQ_USER:-dotcruz}
+      - Settings__WorkspaceMessaging__Password=${RABBITMQ_PASS:-mudar123}
     networks:
       - dotcruz_net
     deploy:

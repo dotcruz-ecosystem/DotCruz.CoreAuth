@@ -61,7 +61,7 @@ public class UserTest
 
         var newData = UserBuilder.Build(type: UserType.User);
 
-        user.Update(newData.Name, newData.Email, newData.PasswordHash, newData.Type, newData.WorkspaceId);
+        user.Update(newData.Name, newData.Email, newData.PasswordHash, newData.Type);
 
         user.Name.Should().Be(newData.Name);
         user.Email.Should().Be(newData.Email);
@@ -144,35 +144,15 @@ public class UserTest
             .And.HaveCount(1);
     }
 
+
     [Fact]
-    public void Success_On_Create_Without_WorkspaceId()
+    public void Success_On_Create_User()
     {
-        var user = new User("Nome", "email@teste.com", UserType.User, Guid.Empty);
+        var user = new User("Nome", "email@teste.com", UserType.User);
 
         user.Should().NotBeNull();
-        user.DefaultWorkspaceId.Should().BeNull();
-        user.WorkspaceId.Should().Be(Guid.Empty);
-    }
-
-    [Fact]
-    public void Success_On_Create_With_WorkspaceId()
-    {
-        var workspaceId = Guid.NewGuid();
-        var user = new User("Nome", "email@teste.com", UserType.User, workspaceId);
-
-        user.Should().NotBeNull();
-        user.WorkspaceId.Should().Be(workspaceId);
-    }
-
-    [Fact]
-    public void Success_On_Update_To_Global_Clears_WorkspaceId()
-    {
-        var workspaceId = Guid.NewGuid();
-        var user = new User("Nome", "email@teste.com", UserType.User, workspaceId);
-
-        user.Update(null, null, null, UserType.SuperAdmin, Guid.Empty);
-
-        user.WorkspaceId.Should().Be(Guid.Empty);
+        user.Name.Should().Be("Nome");
+        user.Email.Should().Be("email@teste.com");
     }
 
     [Fact]
