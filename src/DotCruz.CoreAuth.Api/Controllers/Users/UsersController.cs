@@ -44,9 +44,8 @@ public class UsersController(IMediator mediator) : DotCruzCoreAuthBaseController
     [Authorize(Policy = SecurityPolicies.AdminOnly)]
     [ProducesResponseType(typeof(PagedResultDto<ResponseUserDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetPaged([FromQuery] GetUsersQuery query, CancellationToken cancellationToken = default)
     {
-        var query = new GetUsersQuery(pageNumber, pageSize);
         var result = await _mediator.Send(query, cancellationToken);
         return Ok(result);
     }
